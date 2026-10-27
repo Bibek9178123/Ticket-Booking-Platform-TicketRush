@@ -53,18 +53,18 @@ The High-Level Design defines the macro architecture of TicketRush, illustrating
 
 ```mermaid
 flowchart TD
-    subgraph Clients["Clients & Presentation Layer"]
-        C1["Customer Browser (HTML5 / Vanilla JS / CSS)"]
+    subgraph Clients["Clients and Presentation Layer"]
+        C1["Customer Browser - Vanilla JS / HTML5"]
         C2["Organizer Dashboard"]
         C3["Admin Portal"]
     end
 
-    subgraph SecurityBoundary["Security & Gateway Boundary"]
-        JWT["Stateless JwtAuthenticationFilter (OncePerRequestFilter)"]
-        RBAC["Spring Security 6 RBAC (CUSTOMER, ORGANIZER, ADMIN)"]
+    subgraph SecurityBoundary["Security and Gateway Boundary"]
+        JWT["Stateless JwtAuthenticationFilter"]
+        RBAC["Spring Security 6 RBAC"]
     end
 
-    subgraph AppMonolith["TicketRush Application Core (Spring Boot 3.2.4)"]
+    subgraph AppMonolith["TicketRush Application Core"]
         direction TB
         subgraph REST["REST Controllers"]
             AuthCtrl["AuthController"]
@@ -80,34 +80,33 @@ flowchart TD
             AuthSvc["AuthService"]
             EventSvc["EventService"]
             SeatSvc["SeatService"]
-            BookSvc["BookingService\n(Pessimistic Locking Engine)"]
+            BookSvc["BookingService - Locking Engine"]
             PaySvc["PaymentService"]
-            HookSvc["WebhookService\n(HMAC-SHA256 Idempotency)"]
-            CatalogSvc["CatalogSyncService\n(Hindi Cinema Synchronizer)"]
+            HookSvc["WebhookService - Idempotency"]
+            CatalogSvc["CatalogSyncService - Cinema Sync"]
+            AdminSvc["AdminService"]
         end
 
         subgraph Schedulers["Background Asynchronous Workers"]
-            TTLWorker["HoldExpiryScheduler\n(@Scheduled fixedRate = 30s)"]
+            TTLWorker["HoldExpiryScheduler - 30s Fixed Rate"]
         end
     end
 
     subgraph ExternalAPIs["External Services"]
-        TMDB["TMDB API (Live Hindi Theatrical Releases)"]
-        Gateway["Payment Gateway / Mock Gateway"]
+        TMDB["TMDB API - Live Hindi Cinema"]
+        Gateway["Payment Gateway Simulator"]
     end
 
-    subgraph Persistence["Persistence & Database Layer"]
-        MySQL[("MySQL 8 / TiDB Cloud Serverless\n(InnoDB Engine - ACID & Row-Level Locking)")]
+    subgraph Persistence["Persistence and Database Layer"]
+        MySQL[("MySQL 8 / TiDB Cloud<br/>InnoDB ACID and Row-Level Locks")]
     end
 
-    %% Client Traffic
-    C1 -->|HTTPS / REST API| JWT
-    C2 -->|HTTPS / REST API| JWT
-    C3 -->|HTTPS / REST API| JWT
+    C1 -->|HTTPS Requests| JWT
+    C2 -->|HTTPS Requests| JWT
+    C3 -->|HTTPS Requests| JWT
     JWT --> RBAC
     RBAC --> REST
 
-    %% Controller to Services
     AuthCtrl --> AuthSvc
     EventCtrl --> EventSvc
     EventCtrl --> CatalogSvc
@@ -115,16 +114,20 @@ flowchart TD
     BookCtrl --> BookSvc
     PayCtrl --> PaySvc
     HookCtrl --> HookSvc
-    AdminCtrl --> AdminSvc["AdminService"]
+    AdminCtrl --> AdminSvc
 
-    %% External Connections
-    CatalogSvc -->|GET /discover/movie| TMDB
+    CatalogSvc -->|GET Live Releases| TMDB
     PaySvc -->|Initiate Checkout| Gateway
     Gateway -->|HMAC Signed Webhook| HookCtrl
 
-    %% Database Operations
-    AuthSvc & EventSvc & SeatSvc & BookSvc & PaySvc & HookSvc & AdminSvc -->|Spring Data JPA / Hibernate| MySQL
-    TTLWorker -->|Auto-release expired seats\n(status = PENDING & expires_at < NOW)| MySQL
+    AuthSvc --> MySQL
+    EventSvc --> MySQL
+    SeatSvc --> MySQL
+    BookSvc --> MySQL
+    PaySvc --> MySQL
+    HookSvc --> MySQL
+    AdminSvc --> MySQL
+    TTLWorker -->|Auto-release expired seats| MySQL
 ```
 
 ---
@@ -136,51 +139,47 @@ The complete lifecycle from selecting seats in the cinema hall to ticket generat
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Customer as 👤 Customer
-    participant Front as 💻 Frontend (api.js)
-    participant Filter as 🛡️ JwtFilter
-    participant BookSvc as ⚙️ BookingService
-    participant DB as 🗄️ MySQL / TiDB
-    participant Gateway as 💳 Payment Gateway
-    participant WebhookSvc as 🔒 WebhookService
+    actor Customer as Customer
+    participant Front as Frontend (api.js)
+    participant Filter as JwtFilter
+    participant BookSvc as BookingService
+    participant DB as MySQL / TiDB
+    participant Gateway as Payment Gateway
+    participant WebhookSvc as WebhookService
 
-    Customer->>Front: Selects Seats (e.g., A1, A2) & Clicks "Hold Seats"
+    Customer->>Front: Selects Seats A1, A2 and clicks Hold Seats
     Front->>Filter: POST /api/bookings (Bearer JWT, seatIds)
     Filter->>BookSvc: Authorized (ROLE_CUSTOMER)
     
-    rect rgb(240, 248, 255)
-        Note over BookSvc,DB: Atomic Pessimistic Write Lock Transaction
-        BookSvc->>DB: SELECT * FROM seats WHERE id IN (:ids) FOR UPDATE
-        DB-->>BookSvc: Seat records locked exclusively
-        BookSvc->>BookSvc: Verify all seats are AVAILABLE
-        BookSvc->>DB: UPDATE seats SET status = 'HELD'
-        BookSvc->>DB: INSERT INTO bookings (status = 'PENDING', expires_at = NOW() + 5m)
-        BookSvc->>DB: INSERT INTO booking_seats (booking_id, seat_id)
-    end
+    Note over BookSvc,DB: Atomic Pessimistic Write Lock Transaction
+    BookSvc->>DB: SELECT * FROM seats WHERE id IN (:ids) FOR UPDATE
+    DB-->>BookSvc: Seat records locked exclusively
+    BookSvc->>BookSvc: Verify all seats are AVAILABLE
+    BookSvc->>DB: UPDATE seats SET status = 'HELD'
+    BookSvc->>DB: INSERT INTO bookings (status = 'PENDING', 5m TTL)
+    BookSvc->>DB: INSERT INTO booking_seats (booking_id, seat_id)
 
     BookSvc-->>Front: 201 Created (bookingId, expiresAt: 5-minute countdown)
     Front-->>Customer: Displays 5-minute checkout countdown timer
     
-    Customer->>Front: Clicks "Proceed to Pay"
+    Customer->>Front: Clicks Proceed to Pay
     Front->>Gateway: Redirects to Payment Screen
     Customer->>Gateway: Submits payment credentials
     Gateway->>Gateway: Payment Authorized Successfully
     
-    rect rgb(255, 250, 240)
-        Note over Gateway,WebhookSvc: Cryptographic Webhook Callback
-        Gateway->>WebhookSvc: POST /api/webhooks/payment (Payload, HMAC-SHA256 Signature)
-        WebhookSvc->>WebhookSvc: Verify HMAC signature using secret
-        WebhookSvc->>DB: Check idempotency (SELECT event_id FROM webhook_events)
-        WebhookSvc->>DB: UPDATE bookings SET status = 'CONFIRMED' WHERE id = :bookingId
-        WebhookSvc->>DB: UPDATE seats SET status = 'BOOKED' WHERE id IN (:seatIds)
-        WebhookSvc->>DB: INSERT INTO payments (status = 'SUCCESS')
-        WebhookSvc->>DB: INSERT INTO webhook_events (event_id, status = 'PROCESSED')
-        WebhookSvc-->>Gateway: 200 OK (Event Processed)
-    end
+    Note over Gateway,WebhookSvc: Cryptographic Webhook Callback
+    Gateway->>WebhookSvc: POST /api/webhooks/payment (Payload, HMAC-SHA256 Signature)
+    WebhookSvc->>WebhookSvc: Verify HMAC signature using secret
+    WebhookSvc->>DB: Check idempotency (SELECT event_id FROM webhook_events)
+    WebhookSvc->>DB: UPDATE bookings SET status = 'CONFIRMED'
+    WebhookSvc->>DB: UPDATE seats SET status = 'BOOKED'
+    WebhookSvc->>DB: INSERT INTO payments (status = 'SUCCESS')
+    WebhookSvc->>DB: INSERT INTO webhook_events (event_id, status = 'PROCESSED')
+    WebhookSvc-->>Gateway: 200 OK (Event Processed)
 
     Customer->>Front: Navigates to /ticket.html?bookingId=XYZ
     Front->>DB: GET /api/bookings/{id}
-    DB-->>Front: Booking details, QR verification data & seat numbers
+    DB-->>Front: Booking details, QR verification data and seat numbers
     Front-->>Customer: Displays confirmed admission pass with print/download
 ```
 
@@ -192,28 +191,28 @@ How TicketRush prevents double-booking when 500 concurrent users attempt to rese
 
 ```mermaid
 flowchart TD
-    Start["500 Concurrent Customers click 'Reserve Seat A1' at the same millisecond"] --> Threads["500 Parallel Threads in Thread Pool"]
+    Start["500 Concurrent Customers click Reserve Seat A1 simultaneously"] --> Threads["500 Parallel Worker Threads"]
     
-    Threads --> LockRequest["All threads execute:\nSELECT * FROM seats WHERE id = 1 FOR UPDATE"]
+    Threads --> LockRequest["All threads execute:<br/>SELECT * FROM seats WHERE id = 1 FOR UPDATE"]
     
-    LockRequest --> Contention{"InnoDB Lock Manager\nRow Lock on Seat #1"}
+    LockRequest --> Contention{"InnoDB Lock Manager<br/>Row Lock on Seat 1"}
     
-    Contention -->|Lock Granted to Thread #1| Winner["Thread #1 acquires Exclusive Row Lock\n(Latency: ~2ms)"]
-    Contention -->|Queued behind Row Lock| Losers["Threads #2 to #500 wait for lock release"]
+    Contention -->|Lock Granted to Thread 1| Winner["Thread 1 acquires Exclusive Row Lock<br/>Latency: ~2ms"]
+    Contention -->|Queued behind Row Lock| Losers["Threads 2 to 500 wait in lock queue"]
     
-    Winner --> CheckStatus1{"Is Seat #1 AVAILABLE?"}
-    CheckStatus1 -->|YES| Reserve["1. Set Seat #1 status = 'HELD'\n2. Create Booking (PENDING, 5m TTL)\n3. Commit Transaction"]
+    Winner --> CheckStatus1{"Is Seat 1 AVAILABLE?"}
+    CheckStatus1 -->|Yes| Reserve["1. Set Seat status to HELD<br/>2. Create Booking with 5m TTL<br/>3. Commit Transaction"]
     
-    Reserve --> ReleaseLock["Lock is released immediately on commit (~8ms total)"]
-    Reserve --> Return201["Thread #1 returns:\nHTTP 201 Created (Booking Successful)"]
+    Reserve --> ReleaseLock["Lock released immediately on commit - ~8ms total"]
+    Reserve --> Return201["Thread 1 returns:<br/>HTTP 201 Created - Booking Successful"]
     
-    ReleaseLock --> WakeLosers["Thread #2 acquires lock next"]
-    WakeLosers --> CheckStatus2{"Is Seat #1 AVAILABLE?"}
-    CheckStatus2 -->|NO (status is HELD)| Fail["Throw SeatUnavailableException\nRollback Transaction immediately"]
+    ReleaseLock --> WakeLosers["Thread 2 acquires lock next"]
+    WakeLosers --> CheckStatus2{"Is Seat 1 AVAILABLE?"}
+    CheckStatus2 -->|No - Status is HELD| Fail["Throw SeatUnavailableException<br/>Rollback Transaction immediately"]
     
-    Fail --> Return409["Thread #2 returns:\nHTTP 409 Conflict ('Seat A1 is already reserved')"]
+    Fail --> Return409["Thread 2 returns:<br/>HTTP 409 Conflict - Seat already reserved"]
     
-    Fail --> NextLosers["Threads #3 to #500 repeat check, fail immediately & return 409 Conflict"]
+    Fail --> NextLosers["Threads 3 to 500 repeat check, fail and return 409 Conflict"]
     
     style Return201 fill:#d4edda,stroke:#28a745,stroke-width:2px;
     style Return409 fill:#f8d7da,stroke:#dc3545,stroke-width:2px;
@@ -230,12 +229,12 @@ The Low-Level Design defines the internal object-oriented class structure, state
 ```mermaid
 classDiagram
     class User {
-        -Long id
-        -String email
-        -String passwordHash
-        -String fullName
-        -Role role
-        -LocalDateTime createdAt
+        +Long id
+        +String email
+        +String passwordHash
+        +String fullName
+        +Role role
+        +LocalDateTime createdAt
         +isAdmin() boolean
         +isOrganizer() boolean
     }
@@ -248,16 +247,16 @@ classDiagram
     }
 
     class Event {
-        -Long id
-        -User organizer
-        -String title
-        -String description
-        -String venue
-        -String posterUrl
-        -LocalDateTime startTime
-        -LocalDateTime endTime
-        -EventStatus status
-        -LocalDateTime createdAt
+        +Long id
+        +User organizer
+        +String title
+        +String description
+        +String venue
+        +String posterUrl
+        +LocalDateTime startTime
+        +LocalDateTime endTime
+        +EventStatus status
+        +LocalDateTime createdAt
     }
 
     class EventStatus {
@@ -269,15 +268,15 @@ classDiagram
     }
 
     class EventSeat {
-        -Long id
-        -Event event
-        -String seatNumber
-        -String rowName
-        -Integer colNumber
-        -SeatTier tier
-        -BigDecimal price
-        -SeatStatus status
-        -LocalDateTime createdAt
+        +Long id
+        +Event event
+        +String seatNumber
+        +String rowName
+        +Integer colNumber
+        +SeatTier tier
+        +BigDecimal price
+        +SeatStatus status
+        +LocalDateTime createdAt
     }
 
     class SeatTier {
@@ -295,13 +294,13 @@ classDiagram
     }
 
     class Booking {
-        -Long id
-        -User user
-        -Event event
-        -BookingStatus status
-        -BigDecimal totalAmount
-        -LocalDateTime expiresAt
-        -LocalDateTime createdAt
+        +Long id
+        +User user
+        +Event event
+        +BookingStatus status
+        +BigDecimal totalAmount
+        +LocalDateTime expiresAt
+        +LocalDateTime createdAt
         +isExpired() boolean
     }
 
@@ -314,20 +313,20 @@ classDiagram
     }
 
     class BookingSeat {
-        -Long id
-        -Booking booking
-        -EventSeat seat
-        -BigDecimal priceAtBooking
+        +Long id
+        +Booking booking
+        +EventSeat seat
+        +BigDecimal priceAtBooking
     }
 
     class Payment {
-        -Long id
-        -Booking booking
-        -BigDecimal amount
-        -PaymentStatus status
-        -String transactionId
-        -String paymentMethod
-        -LocalDateTime createdAt
+        +Long id
+        +Booking booking
+        +BigDecimal amount
+        +PaymentStatus status
+        +String transactionId
+        +String paymentMethod
+        +LocalDateTime createdAt
     }
 
     class PaymentStatus {
@@ -339,12 +338,12 @@ classDiagram
     }
 
     class WebhookEvent {
-        -Long id
-        -String eventId
-        -String eventType
-        -String payloadHash
-        -String status
-        -LocalDateTime receivedAt
+        +Long id
+        +String eventId
+        +String eventType
+        +String payloadHash
+        +String status
+        +LocalDateTime receivedAt
     }
 
     User "1" --> "*" Event : organizes
@@ -369,21 +368,21 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> AVAILABLE : Event published with seat layout
-    AVAILABLE --> HELD : Customer holds seat (Pessimistic Lock, 5m TTL)
-    HELD --> AVAILABLE : 5-minute TTL expires (HoldExpiryScheduler)
+    AVAILABLE --> HELD : Customer holds seat with 5m TTL
+    HELD --> AVAILABLE : 5-minute TTL expires
     HELD --> AVAILABLE : Customer cancels reservation
     HELD --> BOOKED : Payment confirmed via HMAC Webhook
-    BOOKED --> AVAILABLE : Admin / Organizer issues refund & cancellation
+    BOOKED --> AVAILABLE : Admin or Organizer issues refund and cancellation
     BOOKED --> [*] : Event concludes
 ```
 
 #### B. Booking State Machine (`BookingStatus`)
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING : Seats held, checkout timer initiated
-    PENDING --> CONFIRMED : Gateway webhook verifies payment (HMAC-SHA256)
-    PENDING --> EXPIRED : 5 minutes pass without successful payment
-    PENDING --> CANCELLED : Customer manually cancels checkout
+    [*] --> PENDING : Seats held and checkout timer initiated
+    PENDING --> CONFIRMED : Gateway webhook verifies payment
+    PENDING --> EXPIRED : 5 minutes pass without payment
+    PENDING --> CANCELLED : Customer cancels checkout
     CONFIRMED --> CANCELLED : Ticket refunded by administrator
     CONFIRMED --> [*] : Ticket scanned at venue check-in
     EXPIRED --> [*]
