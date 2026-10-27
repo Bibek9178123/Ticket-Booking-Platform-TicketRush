@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Mock Payment Gateway Sandbox - TicketRush</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -27,6 +27,11 @@
       margin-top: 1.5rem;
       display: none;
     }
+    @media (max-width: 600px) {
+      .mockpay-card {
+        padding: 1.35rem 1rem !important;
+      }
+    }
   </style>
 </head>
 <body style="background: radial-gradient(circle at top, #1e1b4b 0%, #030712 100%); min-height: 100vh; display: flex; flex-direction: column;">
@@ -43,7 +48,7 @@
   </header>
 
   <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
-    <div class="glass-panel" style="max-width: 540px; width: 100%; padding: 2.5rem; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+    <div class="glass-panel mockpay-card" style="max-width: 540px; width: 100%; padding: 2.5rem; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
       <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #6366f1, #ec4899);"></div>
 
       <div style="text-align: center; margin-bottom: 2rem;">

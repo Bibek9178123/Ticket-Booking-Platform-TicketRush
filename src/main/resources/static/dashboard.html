@@ -2,9 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Admin Console - TicketRush</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .admin-main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
+      box-sizing: border-box;
+    }
+    .admin-inputs-group {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .admin-sync-input {
+      width: 190px;
+      font-size: 0.85rem;
+      padding: 0.65rem 0.85rem;
+    }
+    @media (max-width: 768px) {
+      .admin-main {
+        padding: 1rem 0.75rem 4rem !important;
+      }
+      .admin-panel-responsive {
+        padding: 1.25rem 1rem !important;
+      }
+      .admin-inputs-group {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+      .admin-sync-input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      #btn-sync-catalog {
+        width: 100% !important;
+        justify-content: center !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -17,11 +57,11 @@
     </div>
   </header>
 
-  <main>
-    <div style="margin-bottom: 2.5rem;">
+  <main class="admin-main">
+    <div style="margin-bottom: 2rem;">
       <div class="card-tag" style="margin-bottom: 0.5rem;">System Administration</div>
-      <h1 style="font-size: 2.4rem; font-weight: 900; letter-spacing: -0.02em;">Platform Overview</h1>
-      <p style="color: var(--text-secondary); font-size: 1rem;">Manage users, promote roles, and oversee real-time system metrics.</p>
+      <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.02em;">Platform Overview</h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">Manage users, promote roles, and oversee real-time system metrics.</p>
     </div>
 
     <!-- Platform Stats Cards -->
@@ -45,7 +85,7 @@
     </div>
 
     <!-- Real Catalog Ingest Panel -->
-    <div class="glass-panel" style="padding: 1.75rem 2rem; margin-bottom: 2.5rem; border-color: rgba(99, 102, 241, 0.35); background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.6));">
+    <div class="glass-panel admin-panel-responsive" style="padding: 1.75rem 2rem; margin-bottom: 2.5rem; border-color: rgba(99, 102, 241, 0.35); background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.6));">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
         <div>
           <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
@@ -57,9 +97,9 @@
             Fetch and populate active in-cinema movies from <strong>TMDB</strong> and worldwide touring concerts/sports from <strong>Ticketmaster Discovery</strong> directly into MySQL with ready-to-book seat maps.
           </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
-          <input type="text" id="tmdb-api-key-input" class="form-control" placeholder="TMDB Key (Optional)" style="width: 190px; font-size: 0.85rem; padding: 0.65rem 0.85rem;" title="Optional TMDB v3 API Key" />
-          <input type="text" id="ticketmaster-api-key-input" class="form-control" placeholder="Ticketmaster Key (Optional)" style="width: 220px; font-size: 0.85rem; padding: 0.65rem 0.85rem;" title="Optional Ticketmaster Discovery Consumer Key" />
+        <div class="admin-inputs-group">
+          <input type="text" id="tmdb-api-key-input" class="form-control admin-sync-input" placeholder="TMDB Key (Optional)" title="Optional TMDB v3 API Key" />
+          <input type="text" id="ticketmaster-api-key-input" class="form-control admin-sync-input" placeholder="Ticketmaster Key (Optional)" style="width: 220px;" title="Optional Ticketmaster Discovery Consumer Key" />
           <button id="btn-sync-catalog" class="btn btn-primary" onclick="triggerCatalogSync()" style="padding: 0.75rem 1.4rem; font-weight: 800; box-shadow: 0 4px 20px rgba(248, 68, 100, 0.35); white-space: nowrap;">
             🔄 Sync Real Movies & Live Shows
           </button>

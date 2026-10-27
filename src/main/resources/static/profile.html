@@ -2,10 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Account & Settings - TicketRush</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
+    .profile-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 6rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
     .profile-layout {
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -15,6 +22,45 @@
     @media (max-width: 860px) {
       .profile-layout {
         grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .profile-main {
+        padding: 1rem 0.75rem 4rem !important;
+      }
+      .profile-layout {
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .profile-nav-card {
+        padding: 0.65rem !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 0.45rem !important;
+        scrollbar-width: none !important;
+      }
+      .profile-nav-card::-webkit-scrollbar {
+        display: none !important;
+      }
+      .profile-nav-item {
+        white-space: nowrap !important;
+        margin-bottom: 0 !important;
+        padding: 0.5rem 0.85rem !important;
+        font-size: 0.82rem !important;
+        flex: 0 0 auto !important;
+      }
+      .profile-content-card {
+        padding: 1.25rem 1rem !important;
+        border-radius: var(--radius-md) !important;
+      }
+      .user-avatar-circle {
+        width: 62px !important;
+        height: 62px !important;
+        font-size: 1.5rem !important;
+      }
+      .profile-header-banner {
+        padding: 1.25rem 1rem !important;
       }
     }
     .profile-nav-card {
@@ -100,16 +146,16 @@
     </div>
   </header>
 
-  <main style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 6rem; width: 100%;">
+  <main class="profile-main">
     <!-- Navigation Back -->
     <div style="margin-bottom: 1.5rem;">
-      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8;">
+      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8; font-size: 0.88rem;">
         &larr; Back to Events Catalog
       </a>
     </div>
 
     <!-- User Profile Header Banner -->
-    <div class="glass-panel" style="padding: 2.25rem; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, #191e30 0%, #121522 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+    <div class="glass-panel profile-header-banner" style="padding: 2.25rem; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, #191e30 0%, #121522 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
       <div style="display: flex; align-items: center; gap: 1.75rem;">
         <div id="avatar-initial" class="user-avatar-circle">U</div>
         <div>

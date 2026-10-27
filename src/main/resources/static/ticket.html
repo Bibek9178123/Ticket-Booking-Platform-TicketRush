@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Your Ticket Pass - TicketRush</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
@@ -58,6 +58,26 @@
       margin: 1rem 0 0.5rem;
     }
 
+    @media (max-width: 600px) {
+      .ticket-main {
+        padding: 1rem 0.75rem !important;
+      }
+      .ticket-stub {
+        padding: 1.35rem 1rem !important;
+        border-radius: 14px;
+        margin-bottom: 1.5rem;
+      }
+      .ticket-perforation::before, .ticket-perforation::after {
+        width: 22px;
+        height: 22px;
+        top: -11px;
+      }
+      .ticket-perforation::before { left: -20px; }
+      .ticket-perforation::after { right: -20px; }
+      .barcode-lines { height: 42px; }
+      #event-title { font-size: 1.35rem !important; }
+    }
+
     @media print {
       header, .no-print { display: none !important; }
       body { background: #fff !important; color: #000 !important; }
@@ -80,7 +100,7 @@
     </div>
   </header>
 
-  <main style="max-width: 680px; margin: 0 auto; padding: 2rem 1rem;">
+  <main class="ticket-main" style="max-width: 680px; margin: 0 auto; padding: 2rem 1rem; box-sizing: border-box;">
     <!-- Navigation Back -->
     <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
       <a href="/my-bookings.html" style="font-weight: 700; color: #94a3b8;">&larr; My Bookings</a>

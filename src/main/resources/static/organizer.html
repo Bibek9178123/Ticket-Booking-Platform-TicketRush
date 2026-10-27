@@ -2,9 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Organizer Studio - TicketRush</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .organizer-main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      box-sizing: border-box;
+    }
+    @media (max-width: 640px) {
+      .organizer-main {
+        padding: 1rem 0.75rem 4rem !important;
+      }
+      .organizer-header-actions {
+        width: 100% !important;
+      }
+      .organizer-header-actions .btn {
+        flex: 1 !important;
+        justify-content: center !important;
+      }
+      .modal-responsive {
+        padding: 1.25rem 1rem !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -17,14 +40,14 @@
     </div>
   </header>
 
-  <main>
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+  <main class="organizer-main">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
       <div>
         <div class="card-tag" style="margin-bottom: 0.5rem;">Organizer Workspace</div>
-        <h1 style="font-size: 2.4rem; font-weight: 900; letter-spacing: -0.02em;">Event Studio</h1>
-        <p style="color: var(--text-secondary); font-size: 1rem;">Publish events, configure row-tier pricing, check in attendees, and manage seat maps.</p>
+        <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -0.02em;">Event Studio</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Publish events, configure row-tier pricing, check in attendees, and manage seat maps.</p>
       </div>
-      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div class="organizer-header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
         <button id="btn-toggle-checkin" class="btn btn-secondary" onclick="toggleCheckInModal()">
           <span>🎟️</span> Check-In Attendee
         </button>
@@ -35,7 +58,7 @@
     </div>
 
     <!-- Ticket Check-In Scanner Section -->
-    <div id="checkin-modal" class="glass-panel" style="display: none; padding: 2rem; margin-bottom: 2.5rem; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+    <div id="checkin-modal" class="glass-panel modal-responsive" style="display: none; padding: 2rem; margin-bottom: 2.5rem; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h2 style="font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
           <span>📱</span> Entrance Ticket Check-In
@@ -256,10 +279,6 @@
       const container = document.getElementById('tiers-container');
       const row = document.createElement('div');
       row.className = 'tier-row';
-      row.style.display = 'grid';
-      row.style.gridTemplateColumns = '2fr 1fr 1fr 1fr auto';
-      row.style.gap = '0.75rem';
-      row.style.alignItems = 'center';
 
       row.innerHTML = `
         <input type="text" class="form-control tier-name" placeholder="Tier Name (e.g. VIP)" value="${name}" required>

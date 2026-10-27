@@ -2,11 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Select Seats - TicketRush Cinema & Events</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .hidden { display: none !important; }
+    .event-details-main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 7.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    @media (max-width: 768px) {
+      .event-details-main {
+        padding: 1rem 0.75rem 9rem;
+      }
+      .mobile-seat-hint {
+        display: block !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -25,10 +40,10 @@
     </div>
   </header>
 
-  <main style="max-width: 1240px; margin: 0 auto; padding: 2rem 1.5rem 7rem; width: 100%;">
+  <main class="event-details-main">
     <!-- Back to Catalog -->
     <div style="margin-bottom: 1.25rem;">
-      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8;">
+      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8; font-size: 0.88rem;">
         &larr; Back to Events Catalog
       </a>
     </div>
@@ -48,7 +63,7 @@
 
     <!-- Stadium Seat Map Container -->
     <div class="seat-map-wrapper">
-      <div style="text-align: center; margin-bottom: 2.5rem;">
+      <div style="text-align: center; margin-bottom: 2rem;">
         <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.3rem;">Interactive Stadium Map</h2>
         <p style="color: var(--text-muted); font-size: 0.88rem;">
           Select up to 6 seats. Click an available armchair to add it to your booking dock.
@@ -60,6 +75,11 @@
         <div class="bms-screen-curve"></div>
         <div class="bms-screen-light-beam"></div>
         <div class="bms-screen-text">All eyes this way please! STAGE / SCREEN</div>
+      </div>
+
+      <!-- Mobile Horizontal Scroll Hint -->
+      <div class="mobile-seat-hint" style="display: none; text-align: center; color: #38bdf8; font-size: 0.76rem; font-weight: 700; margin-bottom: 0.85rem;">
+        👈 Swipe horizontally across seats 👉
       </div>
 
       <!-- Scrollable Seat Matrix -->

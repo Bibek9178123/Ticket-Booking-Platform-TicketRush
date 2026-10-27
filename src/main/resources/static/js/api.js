@@ -200,8 +200,8 @@ const api = {
       const userBadge = document.createElement('div');
       userBadge.className = 'user-badge';
       userBadge.style.cursor = 'pointer';
-      userBadge.title = 'Account & Settings';
-      userBadge.onclick = () => { window.location.href = '/profile.html'; };
+      userBadge.style.position = 'relative';
+      userBadge.title = 'Account Menu (Tap to Open)';
 
       const userName = document.createElement('span');
       userName.textContent = user.name;
@@ -213,28 +213,72 @@ const api = {
 
       userBadge.appendChild(userName);
       userBadge.appendChild(rolePill);
+
+      // Sleek User Menu Dropdown (Essential for Mobile & One-Tap Access)
+      const dropdown = document.createElement('div');
+      dropdown.className = 'user-dropdown-menu';
+      dropdown.style.cssText = 'display: none; position: absolute; top: calc(100% + 10px); right: 0; min-width: 220px; background: #161b29; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 14px; box-shadow: 0 16px 36px rgba(0,0,0,0.85); z-index: 9999; padding: 0.5rem; flex-direction: column; gap: 0.25rem;';
+
+      dropdown.innerHTML = `
+        <div style="padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.25rem;">
+          <div style="font-weight: 800; color: #fff; font-size: 0.88rem;">${user.name}</div>
+          <div style="font-size: 0.72rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis;">${user.email}</div>
+        </div>
+        <a href="/profile.html" class="dropdown-item">⚙️ Account Settings</a>
+        ${user.role === 'CUSTOMER' ? '<a href="/my-bookings.html" class="dropdown-item">🎟️ My Bookings</a>' : ''}
+        ${user.role === 'ORGANIZER' ? '<a href="/organizer.html" class="dropdown-item">🎪 Organizer Studio</a>' : ''}
+        ${user.role === 'ADMIN' ? '<a href="/dashboard.html" class="dropdown-item">⚡ Admin Console</a>' : ''}
+        <a href="/index.html" class="dropdown-item">🌐 Browse Events</a>
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 0.25rem; padding-top: 0.25rem;">
+          <button type="button" class="dropdown-item dropdown-logout-btn" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: #f87171; font-weight: 700;">🚪 Sign Out</button>
+        </div>
+      `;
+
+      dropdown.querySelector('.dropdown-logout-btn').onclick = (e) => {
+        e.stopPropagation();
+        api.clearAuth();
+        api.toast('Signed out successfully.', 'info');
+        setTimeout(() => { window.location.href = '/index.html'; }, 400);
+      };
+
+      userBadge.onclick = (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.style.display === 'flex';
+        document.querySelectorAll('.user-dropdown-menu').forEach(d => { d.style.display = 'none'; });
+        dropdown.style.display = isOpen ? 'none' : 'flex';
+      };
+
+      userBadge.appendChild(dropdown);
       navRight.appendChild(userBadge);
+
+      document.addEventListener('click', (e) => {
+        if (!userBadge.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
 
       if (isAdminPage) {
         // In the Admin Console: provide Storefront switch
         const storefrontBtn = document.createElement('a');
         storefrontBtn.href = '/index.html';
-        storefrontBtn.className = 'btn btn-secondary btn-sm';
+        storefrontBtn.className = 'btn btn-secondary btn-sm nav-desktop-only';
         storefrontBtn.style.padding = '0.45rem 0.9rem';
         storefrontBtn.style.fontWeight = '700';
         storefrontBtn.innerHTML = '🌐 View Storefront';
         navRight.appendChild(storefrontBtn);
       } else {
-        // Show role-specific primary actions
+        // Show role-specific primary actions on desktop
         if (user.role === 'CUSTOMER') {
           const myBookingsLink = document.createElement('a');
           myBookingsLink.href = '/my-bookings.html';
+          myBookingsLink.className = 'nav-desktop-only';
           myBookingsLink.textContent = 'My Bookings';
           myBookingsLink.style.fontWeight = '700';
           navRight.appendChild(myBookingsLink);
 
           const profileLink = document.createElement('a');
           profileLink.href = '/profile.html';
+          profileLink.className = 'nav-desktop-only';
           profileLink.textContent = 'Account';
           profileLink.style.fontWeight = '700';
           navRight.appendChild(profileLink);
@@ -243,6 +287,7 @@ const api = {
         if (user.role === 'ORGANIZER') {
           const orgLink = document.createElement('a');
           orgLink.href = '/organizer.html';
+          orgLink.className = 'nav-desktop-only';
           orgLink.textContent = 'Organizer Studio';
           orgLink.style.fontWeight = '700';
           navRight.appendChild(orgLink);
@@ -251,6 +296,7 @@ const api = {
         if (user.role === 'ADMIN') {
           const adminLink = document.createElement('a');
           adminLink.href = '/dashboard.html';
+          adminLink.className = 'nav-desktop-only';
           adminLink.textContent = 'Admin Console';
           adminLink.style.fontWeight = '700';
           navRight.appendChild(adminLink);
@@ -258,7 +304,7 @@ const api = {
       }
 
       const logoutBtn = document.createElement('button');
-      logoutBtn.className = 'btn btn-secondary btn-sm';
+      logoutBtn.className = 'btn btn-secondary btn-sm nav-desktop-only';
       logoutBtn.textContent = 'Sign Out';
       logoutBtn.onclick = () => {
         api.clearAuth();
