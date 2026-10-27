@@ -143,7 +143,7 @@ const api = {
     const navRight = document.getElementById('nav-right');
     if (!navRight) return;
 
-    const isAdminPage = window.location.pathname.endsWith('admin.html');
+    const isAdminPage = window.location.pathname.endsWith('admin.html') || window.location.pathname.endsWith('dashboard.html');
 
     // Render BookMyShow Secondary Sub-Nav Bar on consumer pages (NOT on admin console)
     const header = document.querySelector('header');
@@ -250,7 +250,7 @@ const api = {
 
         if (user.role === 'ADMIN') {
           const adminLink = document.createElement('a');
-          adminLink.href = '/admin.html';
+          adminLink.href = '/dashboard.html';
           adminLink.textContent = 'Admin Console';
           adminLink.style.fontWeight = '700';
           navRight.appendChild(adminLink);

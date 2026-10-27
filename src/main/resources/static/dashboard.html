@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console - TicketRush</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">🎟️</div>
+        Ticket<span>Rush</span>
+      </a>
+      <nav class="nav-links" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <main>
+    <div style="margin-bottom: 2.5rem;">
+      <div class="card-tag" style="margin-bottom: 0.5rem;">System Administration</div>
+      <h1 style="font-size: 2.4rem; font-weight: 900; letter-spacing: -0.02em;">Platform Overview</h1>
+      <p style="color: var(--text-secondary); font-size: 1rem;">Manage users, promote roles, and oversee real-time system metrics.</p>
+    </div>
+
+    <!-- Platform Stats Cards -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <div class="stat-card">
+        <h4>Registered Users</h4>
+        <p id="stat-users">0</p>
+      </div>
+      <div class="stat-card">
+        <h4>Published Events</h4>
+        <p id="stat-events">0</p>
+      </div>
+      <div class="stat-card">
+        <h4>Total Bookings</h4>
+        <p id="stat-bookings">0</p>
+      </div>
+      <div class="stat-card">
+        <h4>Platform Revenue</h4>
+        <p id="stat-revenue" style="color: var(--success);">$0.00</p>
+      </div>
+    </div>
+
+    <!-- Real Catalog Ingest Panel -->
+    <div class="glass-panel" style="padding: 1.75rem 2rem; margin-bottom: 2.5rem; border-color: rgba(99, 102, 241, 0.35); background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.6));">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span style="font-size: 1.5rem;">🌐</span>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff;">Live Catalog Synchronizer (TMDB + Ticketmaster)</h3>
+            <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 800;">Real-Time Feeds</span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 650px; line-height: 1.5;">
+            Fetch and populate active in-cinema movies from <strong>TMDB</strong> and worldwide touring concerts/sports from <strong>Ticketmaster Discovery</strong> directly into MySQL with ready-to-book seat maps.
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <input type="text" id="tmdb-api-key-input" class="form-control" placeholder="TMDB Key (Optional)" style="width: 190px; font-size: 0.85rem; padding: 0.65rem 0.85rem;" title="Optional TMDB v3 API Key" />
+          <input type="text" id="ticketmaster-api-key-input" class="form-control" placeholder="Ticketmaster Key (Optional)" style="width: 220px; font-size: 0.85rem; padding: 0.65rem 0.85rem;" title="Optional Ticketmaster Discovery Consumer Key" />
+          <button id="btn-sync-catalog" class="btn btn-primary" onclick="triggerCatalogSync()" style="padding: 0.75rem 1.4rem; font-weight: 800; box-shadow: 0 4px 20px rgba(248, 68, 100, 0.35); white-space: nowrap;">
+            🔄 Sync Real Movies & Live Shows
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 0.85rem; font-size: 0.8rem; color: #94a3b8; line-height: 1.5;">
+        💡 <em>Note: Both keys are optional. Leave them blank to sync 24 blockbuster movies + 10 live shows instantly, or paste your free TMDB / Ticketmaster keys to pull live global feeds!</em>
+      </div>
+    </div>
+
+    <!-- Users Table Container -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.5rem; font-weight: 800;">User Accounts</h2>
+      <button class="btn btn-secondary btn-sm" onclick="loadUsers()">🔄 Refresh Users</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role Assignment</th>
+            <th>Status</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-table-body">
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading platform users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Platform Bookings Table Container -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3.5rem; margin-bottom: 1.25rem;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 800;">Platform Bookings & Transactions</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">Live audit log of all customer ticket holds, payments, and confirmations across the system.</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="loadBookings()">🔄 Refresh Bookings</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Booking Reference</th>
+            <th>Customer</th>
+            <th>Event & City</th>
+            <th>Total Amount</th>
+            <th>Booking Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="bookings-table-body">
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading platform bookings...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    async function loadStats() {
+      try {
+        const stats = await api.get('/admin/stats');
+        document.getElementById('stat-users').textContent = stats.totalUsers;
+        document.getElementById('stat-events').textContent = stats.totalEvents;
+        document.getElementById('stat-bookings').textContent = stats.totalBookings;
+        const rev = Number(stats.totalRevenue || 0);
+        document.getElementById('stat-revenue').textContent = '$' + rev.toFixed(2);
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    async function loadBookings() {
+      const tbody = document.getElementById('bookings-table-body');
+      tbody.textContent = '';
+
+      try {
+        const page = await api.get('/admin/bookings');
+        if (!page.content || page.content.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">No customer bookings recorded yet.</td></tr>';
+          return;
+        }
+
+        page.content.forEach(b => {
+          const tr = document.createElement('tr');
+
+          const codeTd = document.createElement('td');
+          codeTd.innerHTML = `<strong>#${b.id}</strong> <span style="font-family: monospace; font-size: 0.85rem; color: #818cf8; margin-left: 0.35rem;">${b.bookingCode}</span>`;
+
+          const custTd = document.createElement('td');
+          custTd.innerHTML = `<div style="font-weight: 700;">${b.customerName}</div><div style="font-size: 0.78rem; color: var(--text-muted);">${b.customerEmail}</div>`;
+
+          const eventTd = document.createElement('td');
+          eventTd.innerHTML = `<div style="font-weight: 600;">${b.eventTitle}</div><div style="font-size: 0.78rem; color: var(--text-muted);">📍 ${b.eventCity}</div>`;
+
+          const amountTd = document.createElement('td');
+          amountTd.style.fontWeight = '700';
+          amountTd.textContent = '$' + Number(b.totalAmount).toFixed(2);
+
+          const statusTd = document.createElement('td');
+          const pill = document.createElement('span');
+          const statusClass = b.status === 'CONFIRMED' ? 'role-ADMIN' : (b.status === 'PENDING_PAYMENT' ? 'role-ORGANIZER' : 'role-CUSTOMER');
+          pill.className = `role-pill ${statusClass}`;
+          pill.textContent = b.status;
+          statusTd.appendChild(pill);
+
+          const dateTd = document.createElement('td');
+          dateTd.style.color = 'var(--text-muted)';
+          dateTd.style.fontSize = '0.85rem';
+          dateTd.textContent = api.formatDateTime(b.createdAt);
+
+          tr.appendChild(codeTd);
+          tr.appendChild(custTd);
+          tr.appendChild(eventTd);
+          tr.appendChild(amountTd);
+          tr.appendChild(statusTd);
+          tr.appendChild(dateTd);
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">Failed to load bookings: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function triggerCatalogSync() {
+      const btn = document.getElementById('btn-sync-catalog');
+      const tmdbKey = document.getElementById('tmdb-api-key-input')?.value.trim();
+      const ticketmasterKey = document.getElementById('ticketmaster-api-key-input')?.value.trim();
+      
+      btn.disabled = true;
+      btn.textContent = '⏳ Ingesting Feeds & Generating Seat Maps...';
+
+      try {
+        const params = new URLSearchParams();
+        if (tmdbKey) params.append('tmdbApiKey', tmdbKey);
+        if (ticketmasterKey) params.append('ticketmasterApiKey', ticketmasterKey);
+
+        const endpoint = '/catalog/sync' + (params.toString() ? `?${params.toString()}` : '');
+        const res = await api.post(endpoint);
+        api.toast(res.message || 'Catalog synced successfully!', 'success');
+        await loadStats();
+      } catch (err) {
+        api.toast(err.message || 'Catalog sync failed', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Sync Real Movies & Live Shows';
+      }
+    }
+
+    async function loadUsers() {
+      const tbody = document.getElementById('users-table-body');
+      tbody.textContent = '';
+
+      try {
+        const page = await api.get('/admin/users');
+        if (!page.content || page.content.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 3rem;">No users found.</td></tr>';
+          return;
+        }
+
+        const loggedInUser = api.getUser();
+        page.content.forEach(user => {
+          const isSelf = loggedInUser && (loggedInUser.email === user.email || loggedInUser.id === user.id);
+          const tr = document.createElement('tr');
+
+          const nameTd = document.createElement('td');
+          nameTd.style.fontWeight = '700';
+          if (isSelf) {
+            nameTd.innerHTML = `${user.name} <span style="font-size: 0.72rem; background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 0.15rem 0.5rem; border-radius: 9999px; margin-left: 0.4rem; font-weight: 700;">(You)</span>`;
+          } else {
+            nameTd.textContent = user.name;
+          }
+
+          const emailTd = document.createElement('td');
+          emailTd.textContent = user.email;
+
+          const roleTd = document.createElement('td');
+          const roleSelect = document.createElement('select');
+          roleSelect.className = 'form-control';
+          roleSelect.style.width = 'auto';
+          roleSelect.style.padding = '0.35rem 0.65rem';
+          roleSelect.style.fontSize = '0.85rem';
+          ['CUSTOMER', 'ORGANIZER', 'ADMIN'].forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            if (user.role === r) opt.selected = true;
+            roleSelect.appendChild(opt);
+          });
+          if (isSelf) {
+            roleSelect.disabled = true;
+            roleSelect.title = "You cannot modify your own role to prevent accidental lockout.";
+          } else {
+            roleSelect.onchange = () => changeRole(user.id, roleSelect.value, user.name);
+          }
+          roleTd.appendChild(roleSelect);
+
+          const statusTd = document.createElement('td');
+          const statusBadge = document.createElement('span');
+          statusBadge.className = `role-pill role-${user.active ? 'CUSTOMER' : 'ADMIN'}`;
+          statusBadge.textContent = user.active ? 'Active' : 'Disabled';
+          statusTd.appendChild(statusBadge);
+
+          const dateTd = document.createElement('td');
+          dateTd.style.color = 'var(--text-muted)';
+          dateTd.textContent = new Date(user.createdAt).toLocaleDateString(undefined, {
+            year: 'numeric', month: 'short', day: 'numeric'
+          });
+
+          const actionsTd = document.createElement('td');
+          const toggleBtn = document.createElement('button');
+          toggleBtn.className = user.active ? 'btn btn-danger btn-sm' : 'btn btn-primary btn-sm';
+          toggleBtn.textContent = user.active ? 'Deactivate' : 'Activate';
+          if (isSelf) {
+            toggleBtn.disabled = true;
+            toggleBtn.title = "You cannot deactivate your own administrator account.";
+          } else {
+            toggleBtn.onclick = () => toggleStatus(user.id, !user.active, user.name);
+          }
+          actionsTd.appendChild(toggleBtn);
+
+          tr.appendChild(nameTd);
+          tr.appendChild(emailTd);
+          tr.appendChild(roleTd);
+          tr.appendChild(statusTd);
+          tr.appendChild(dateTd);
+          tr.appendChild(actionsTd);
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function changeRole(userId, newRole, userName) {
+      try {
+        await api.patch(`/admin/users/${userId}/role`, { role: newRole });
+        api.toast(`Updated ${userName}'s role to ${newRole}`, 'success');
+        loadUsers();
+      } catch (err) {
+        api.toast(err.message || 'Failed to update user role.', 'error');
+      }
+    }
+
+    async function toggleStatus(userId, active, userName) {
+      try {
+        await api.patch(`/admin/users/${userId}/status`, { active });
+        api.toast(`${userName} is now ${active ? 'Active' : 'Deactivated'}`, 'info');
+        loadUsers();
+      } catch (err) {
+        api.toast(err.message || 'Failed to update user status.', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = api.getUser();
+      if (!user || user.role !== 'ADMIN') {
+        api.toast('Access denied: Admin privileges required.', 'error');
+        setTimeout(() => { window.location.href = '/login.html'; }, 1000);
+        return;
+      }
+
+      loadStats();
+      loadUsers();
+      loadBookings();
+    });
+  </script>
+</body>
+</html>
