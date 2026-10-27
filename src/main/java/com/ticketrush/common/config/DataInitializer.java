@@ -51,41 +51,14 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 1. Seed initial users if none exist
-        if (userRepository.count() == 0) {
-            log.info("Seeding initial users (admin, organizer, customer)...");
+        // 1. Ensure default users exist
+        ensureUser("admin@ticketrush.com", "Admin@123", "System Admin", Role.ADMIN);
+        ensureUser("organizer@ticketrush.com", "Organizer@123", "Acme Events", Role.ORGANIZER);
+        ensureUser("customer@ticketrush.com", "Customer@123", "Alice Customer", Role.CUSTOMER);
 
-            User admin = new User(
-                    "admin@ticketrush.com",
-                    passwordEncoder.encode("Admin@123"),
-                    "System Admin",
-                    Role.ADMIN
-            );
-
-            User organizer = new User(
-                    "organizer@ticketrush.com",
-                    passwordEncoder.encode("Organizer@123"),
-                    "Acme Events",
-                    Role.ORGANIZER
-            );
-
-            User customer = new User(
-                    "customer@ticketrush.com",
-                    passwordEncoder.encode("Customer@123"),
-                    "Alice Customer",
-                    Role.CUSTOMER
-            );
-
-            userRepository.save(admin);
-            userRepository.save(organizer);
-            userRepository.save(customer);
-
-            log.info("Users seeded successfully.");
-        }
-
-        // 2. Seed events & catalog if none exist
-        if (eventRepository.count() == 0) {
-            log.info("Database has 0 events. Initializing live catalog with Hindi cinema & live shows...");
+        // 2. Seed events & catalog if fewer than 10 events exist
+        if (eventRepository.count() < 10) {
+            log.info("Database has {} events. Synchronizing full Hindi cinema & live show catalog...", eventRepository.count());
             try {
                 var result = catalogSyncService.syncCatalog();
                 log.info("Live catalog sync completed: {}", result.message());
@@ -93,6 +66,13 @@ public class DataInitializer implements CommandLineRunner {
                 log.warn("Catalog sync failed during startup: {}. Seeding baseline sample event...", ex.getMessage());
                 seedBaselineEvent();
             }
+        }
+    }
+
+    private void ensureUser(String email, String rawPassword, String name, Role role) {
+        if (!userRepository.existsByEmail(email)) {
+            userRepository.save(new User(email, passwordEncoder.encode(rawPassword), name, role));
+            log.info("Created default user: {}", email);
         }
     }
 

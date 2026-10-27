@@ -24,7 +24,21 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiration-ms:3600000}") long expirationMs) {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+            if (keyBytes.length < 32) {
+                keyBytes = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            try {
+                keyBytes = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMs = expirationMs;
     }
