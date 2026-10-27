@@ -139,17 +139,6 @@ const api = {
     this.renderNavbar();
   },
 
-  renderPortfolioBanner() {
-    if (document.querySelector('.portfolio-banner')) return;
-    const banner = document.createElement('aside');
-    banner.className = 'portfolio-banner';
-    banner.style.cssText = 'background: linear-gradient(90deg, #1e1b4b, #312e81); border-bottom: 1px solid rgba(129, 140, 248, 0.3); color: #c7d2fe; padding: 0.55rem 1rem; font-size: 0.82rem; text-align: center; font-weight: 500; position: relative; z-index: 1000;';
-    banner.innerHTML = '🎓 <strong>Educational Portfolio Project</strong> — High-Concurrency Ticket Booking Engine (Java 21 / Spring Boot 3 / TiDB Cloud / Distributed Locking). Open-source engineering demonstration (no real commercial transactions). • <a href="https://github.com/Bibek9178123/Ticket-Booking-Platform-TicketRush" target="_blank" rel="noopener noreferrer" style="color: #a5b4fc; text-decoration: underline; font-weight: 700;">View GitHub Source</a>';
-    if (document.body) {
-      document.body.insertAdjacentElement('afterbegin', banner);
-    }
-  },
-
   renderNavbar() {
     const navRight = document.getElementById('nav-right');
     if (!navRight) return;
@@ -299,6 +288,5 @@ window.Auth = {
 window.showToast = (msg, type) => api.toast(msg, type);
 
 document.addEventListener('DOMContentLoaded', () => {
-  api.renderPortfolioBanner();
   api.renderNavbar();
 });
