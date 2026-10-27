@@ -689,6 +689,13 @@ A multithreaded test (`BookingConcurrencyIntegrationTest`) spawns 50 parallel th
 | `POST` | `/api/auth/register` | Register a new user | Public |
 | `POST` | `/api/auth/login` | Login and obtain JWT token | Public |
 
+### 💓 Health & Keep-Alive Monitoring (`/api/health`)
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `GET` | `/api/health` | Service uptime and status (for UptimeRobot keep-alive) | Public |
+| `GET` | `/health` | Root health alias | Public |
+| `GET` | `/api/health/ping` | Ultra-fast lightweight ping | Public |
+
 ### 🎭 Events (`/api/events`)
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|

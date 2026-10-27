@@ -69,6 +69,8 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Public health check and keep-alive endpoints (UptimeRobot / Render)
+                        .requestMatchers("/api/health/**", "/health").permitAll()
                         // Public authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         // Public webhook endpoints (secured separately via HMAC signature verification)
