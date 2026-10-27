@@ -45,6 +45,121 @@
 
 ---
 
+## 📂 Project Structure & Architecture
+
+TicketRush follows a clean **Package-by-Feature** architecture. Each domain module encapsulates its own controller, service, repository, entity, and Java records (DTOs). This guarantees high cohesion, zero tight coupling, and instant maintainability.
+
+```text
+ticketrush/
+├── .mvn/wrapper/                               # Maven wrapper configuration & binaries
+├── src/
+│   ├── main/
+│   │   ├── java/com/ticketrush/
+│   │   │   ├── TicketRushApplication.java      # Application entry point & @EnableScheduling
+│   │   │   │
+│   │   │   ├── admin/                          # Platform administration & analytics
+│   │   │   │   ├── controller/                 # AdminController (/api/admin/*)
+│   │   │   │   ├── dto/                        # PlatformStatsResponse, AdminUserResponse, etc.
+│   │   │   │   └── service/                    # AdminService (revenue, user roles, booking audits)
+│   │   │   │
+│   │   │   ├── auth/                           # Stateless JWT authentication & registration
+│   │   │   │   ├── controller/                 # AuthController (/api/auth/register, /login)
+│   │   │   │   ├── dto/                        # RegisterRequest, LoginRequest, AuthResponse
+│   │   │   │   └── service/                    # AuthService (BCrypt hashing, JWT issuance)
+│   │   │   │
+│   │   │   ├── booking/                        # Core high-concurrency booking engine
+│   │   │   │   ├── controller/                 # BookingController (/api/bookings/*)
+│   │   │   │   ├── dto/                        # HoldSeatsRequest, BookingDetailResponse, etc.
+│   │   │   │   ├── entity/                     # Booking, BookingSeat, BookingStatus
+│   │   │   │   ├── repository/                 # BookingRepository, BookingSeatRepository
+│   │   │   │   └── service/                    # BookingService (Pessimistic write locking, 5-min TTL)
+│   │   │   │                                   # HoldExpiryScheduler (auto-releases expired seats)
+│   │   │   │
+│   │   │   ├── common/                         # Shared infrastructure, security & error handling
+│   │   │   │   ├── config/                     # SecurityConfig, DataInitializer (seed catalog data)
+│   │   │   │   ├── exception/                  # GlobalExceptionHandler, Custom Exceptions (409, 404, 400)
+│   │   │   │   ├── security/                   # JwtTokenProvider, JwtAuthenticationFilter, UserPrincipal
+│   │   │   │   └── util/                       # SignatureUtils (HMAC-SHA256 signature verification)
+│   │   │   │
+│   │   │   ├── event/                          # Event publishing, catalog search & live cinema feed
+│   │   │   │   ├── catalog/                    # Live TMDB / Ticketmaster external API sync
+│   │   │   │   │   ├── client/                 # TmdbApiClient, TicketmasterApiClient (RestTemplate)
+│   │   │   │   │   ├── controller/             # CatalogController (/api/events/catalog/sync)
+│   │   │   │   │   ├── dto/                    # External API response mapping records
+│   │   │   │   │   └── service/                # CatalogSyncService (auto-seeds Hindi cinema & seat maps)
+│   │   │   │   ├── controller/                 # EventController (/api/events/*)
+│   │   │   │   ├── dto/                        # CreateEventRequest, EventDetailResponse, etc.
+│   │   │   │   ├── entity/                     # Event, EventStatus (DRAFT, PUBLISHED, CANCELLED)
+│   │   │   │   ├── repository/                 # EventRepository (custom JPA search queries)
+│   │   │   │   └── service/                    # EventService (event lifecycle management)
+│   │   │   │
+│   │   │   ├── payment/                        # Payment session checkout & verification
+│   │   │   │   ├── controller/                 # PaymentController (/api/payments/*)
+│   │   │   │   ├── dto/                        # InitiatePaymentRequest, PaymentStatusResponse
+│   │   │   │   ├── entity/                     # Payment, PaymentStatus (PENDING, SUCCESS, FAILED)
+│   │   │   │   ├── repository/                 # PaymentRepository
+│   │   │   │   └── service/                    # PaymentService, MockPaymentGateway
+│   │   │   │
+│   │   │   ├── seat/                           # Seat grid generation & row/tier management
+│   │   │   │   ├── controller/                 # SeatController (/api/events/{id}/seats)
+│   │   │   │   ├── dto/                        # SeatMapResponse, SeatResponse (VIP, Premium, Standard)
+│   │   │   │   ├── entity/                     # EventSeat, SeatStatus (AVAILABLE, HELD, BOOKED)
+│   │   │   │   ├── repository/                 # EventSeatRepository (with PESSIMISTIC_WRITE locks)
+│   │   │   │   └── service/                    # SeatService (hall layout generation)
+│   │   │   │
+│   │   │   ├── user/                           # Customer profile & account settings
+│   │   │   │   ├── controller/                 # UserController (/api/users/me/*)
+│   │   │   │   ├── dto/                        # UserProfileResponse, ChangePasswordRequest, Stats
+│   │   │   │   ├── entity/                     # User, Role (CUSTOMER, ORGANIZER, ADMIN)
+│   │   │   │   ├── repository/                 # UserRepository
+│   │   │   │   └── service/                    # UserService (profile edits & password hashing)
+│   │   │   │
+│   │   │   └── webhook/                        # Cryptographic gateway webhook listener
+│   │   │       ├── controller/                 # WebhookController (/api/webhooks/payment)
+│   │   │       ├── dto/                        # WebhookPayload, WebhookResponse
+│   │   │       ├── entity/                     # WebhookEvent (idempotency ledger)
+│   │   │       ├── repository/                 # WebhookEventRepository
+│   │   │       └── service/                    # WebhookService (idempotent signature verification)
+│   │   │
+│   │   └── resources/
+│   │       ├── application.properties          # Environment-driven application configurations
+│   │       └── static/                         # Lightweight responsive frontend (vanilla JS & CSS)
+│   │           ├── css/
+│   │           │   └── styles.css              # Dark theme styling, row labels & cinema seat map
+│   │           ├── js/
+│   │           │   └── api.js                  # Centralized Fetch API client & JWT session manager
+│   │           ├── index.html                  # Landing catalog with live Hindi cinema releases & pagination
+│   │           ├── event-details.html          # Interactive seat map selection & screen view
+│   │           ├── checkout.html               # 5-minute reservation timer & checkout summary
+│   │           ├── mock-pay.html               # Payment gateway simulation & webhook trigger
+│   │           ├── ticket.html                 # Confirmed booking pass with QR & print/download
+│   │           ├── my-bookings.html            # Customer booking history & status tracker
+│   │           ├── profile.html                # Account settings, profile editor & password change
+│   │           ├── login.html / register.html  # Authentication pages
+│   │           ├── organizer.html              # Event publisher & seat tier setup dashboard
+│   │           └── admin.html                  # System analytics, user administration & booking audit
+│   │
+│   └── test/java/com/ticketrush/               # Comprehensive automated test suite
+│       ├── auth/AuthIntegrationTest.java       # JWT token lifecycle & role verification tests
+│       ├── booking/
+│       │   ├── BookingUnitTest.java            # Unit tests for reservation business logic
+│       │   ├── ConcurrencyBookingTest.java     # 50-thread concurrent seat race test (pessimistic lock)
+│       │   └── naive/                          # Demonstration comparing naive race conditions vs locks
+│       ├── event/
+│       │   ├── EventIntegrationTest.java       # Event publishing & seat map generation tests
+│       │   └── catalog/                        # TMDB live sync tests & fallback catalog unit tests
+│       ├── user/UserIntegrationTest.java       # User profile & password change integration tests
+│       └── webhook/WebhookIntegrationTest.java # HMAC-SHA256 signature tampering & idempotency tests
+│
+├── .env.example                                # Environment variable configuration template
+├── .gitignore                                  # Git exclusion rules (target/, .idea/, logs, secrets)
+├── pom.xml                                     # Maven dependencies and build plugins
+├── README.md                                   # Project documentation & architecture manual
+└── system.properties                           # Java 21 runtime declaration for cloud deployers
+```
+
+---
+
 ## 📐 Database Schema
 
 TicketRush utilizes a relational schema optimized for ACID transactions, locking, and auditability:
