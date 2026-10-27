@@ -1,12 +1,12 @@
 /* ==========================================================================
-   TicketRush - Production BookMyShow Design System
+   TicketRush - Production Entertainment Design System
    World-Class Entertainment Ticketing UI (Vanilla CSS + Plus Jakarta Sans)
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* BookMyShow Signature Identity */
+  /* TicketRush Signature Identity */
   --bms-red: #F84464;
   --bms-red-hover: #E03252;
   --bms-red-glow: rgba(248, 68, 100, 0.45);
@@ -101,7 +101,7 @@ a:hover {
 }
 
 /* ==========================================================================
-   BOOKMYSHOW HEADER & SUB-NAVIGATION
+   MAIN HEADER & SUB-NAVIGATION
    ========================================================================== */
 header {
   background: var(--header-bg);
@@ -148,7 +148,7 @@ header {
   font-weight: 900;
 }
 
-/* BookMyShow Center Search Bar */
+/* Center Search Bar */
 .nav-search-bar {
   flex: 1;
   max-width: 580px;
@@ -231,7 +231,7 @@ header {
 .role-ORGANIZER { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 .role-ADMIN { background: rgba(248, 68, 100, 0.18); color: #f87171; border: 1px solid rgba(248, 68, 100, 0.3); }
 
-/* BookMyShow Secondary Sub-Navigation Strip */
+/* Secondary Sub-Navigation Strip */
 .sub-nav {
   background: var(--subnav-bg);
   border-bottom: 1px solid var(--border-color);
@@ -496,7 +496,7 @@ header {
 }
 
 /* ==========================================================================
-   PORTRAIT POSTER CARDS (BookMyShow Movie/Show Posters)
+   PORTRAIT POSTER CARDS (Entertainment Movie/Show Posters)
    ========================================================================== */
 .events-section-header {
   max-width: 1320px;
@@ -733,7 +733,7 @@ header {
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.75);
 }
 
-/* BookMyShow Iconic Cinema Screen */
+/* Iconic Cinema Screen */
 .bms-screen-container {
   max-width: 680px;
   margin: 0 auto 3.5rem;
@@ -871,7 +871,7 @@ header {
   z-index: 5;
 }
 
-/* Selected in BookMyShow Crimson */
+/* Selected in TicketRush Crimson */
 .seat-SELECTED {
   background-color: var(--bms-red) !important;
   border-color: #ff6b8b !important;
@@ -944,7 +944,7 @@ header {
   border-radius: 5px;
 }
 
-/* BookMyShow Sticky Bottom Booking Bar */
+/* Sticky Bottom Booking Bar */
 .checkout-dock {
   position: fixed;
   bottom: 0;

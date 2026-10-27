@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Select Seats - TicketRush (BookMyShow Style)</title>
+  <title>Select Seats - TicketRush Cinema & Events</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .hidden { display: none !important; }
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <!-- BookMyShow Stadium Seat Map Container -->
+    <!-- Stadium Seat Map Container -->
     <div class="seat-map-wrapper">
       <div style="text-align: center; margin-bottom: 2.5rem;">
         <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.3rem;">Interactive Stadium Map</h2>
@@ -55,7 +55,7 @@
         </p>
       </div>
 
-      <!-- BookMyShow Screen at the Top -->
+      <!-- Stage / Screen at the Top -->
       <div class="bms-screen-container">
         <div class="bms-screen-curve"></div>
         <div class="bms-screen-light-beam"></div>
@@ -69,7 +69,7 @@
         </div>
       </div>
 
-      <!-- Accessible BookMyShow Status Legend -->
+      <!-- Accessible Status Legend -->
       <div class="legend-panel">
         <div class="legend-item">
           <div class="legend-swatch" style="background: var(--seat-available-bg); border: 1.5px solid var(--seat-available-border);"></div>
@@ -90,7 +90,7 @@
       </div>
     </div>
 
-    <!-- BookMyShow Sticky Bottom Booking Bar -->
+    <!-- Sticky Bottom Booking Bar -->
     <div id="checkout-dock" class="checkout-dock hidden">
       <div class="dock-inner">
         <div>
@@ -192,7 +192,7 @@
         });
 
         rows.forEach((rowData, rowLabel) => {
-          // Render BookMyShow tier header divider if tier changed
+          // Render tier header divider if tier changed
           if (rowData.tier !== lastTier) {
             const tierDivider = document.createElement('div');
             tierDivider.className = 'tier-section-header';

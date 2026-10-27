@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
+  <!-- Educational Portfolio Project Banner -->
+  <aside class="portfolio-banner" style="background: linear-gradient(90deg, #1e1b4b, #312e81); border-bottom: 1px solid rgba(129, 140, 248, 0.3); color: #c7d2fe; padding: 0.55rem 1rem; font-size: 0.82rem; text-align: center; font-weight: 500;">
+    🎓 <strong>Educational Portfolio Project</strong> — High-Concurrency Ticket Booking Engine built with Java 21, Spring Boot 3, TiDB Cloud &amp; Distributed Locking. Open-source engineering demonstration (no real commercial payments). • <a href="https://github.com/Bibek9178123/Ticket-Booking-Platform-TicketRush" target="_blank" rel="noopener noreferrer" style="color: #a5b4fc; text-decoration: underline; font-weight: 700;">View GitHub Source</a>
+  </aside>
+
   <!-- Header -->
   <header>
     <div class="nav-container">
@@ -107,7 +112,7 @@
       <div style="font-weight: 700; font-size: 1.05rem;">Loading verified entertainment catalog...</div>
     </div>
 
-    <!-- BookMyShow See More / Load More Shows -->
+    <!-- See More / Load More Shows -->
     <div id="load-more-container" style="text-align: center; margin: 1rem auto 5rem; display: none;">
       <button id="btn-load-more" class="btn btn-secondary" onclick="loadMoreEvents()" style="padding: 0.95rem 2.85rem; font-size: 1.02rem; font-weight: 800; border-radius: 9999px; border: 1.5px solid rgba(255, 255, 255, 0.2); background: #161b28; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
         ✨ See More Shows & Movies &darr;
@@ -178,7 +183,7 @@
       const posterUrl = event.posterUrl || specificPosters[event.title] || categoryPosters[event.category] || categoryPosters['Concerts'];
       const icon = categoryIcons[event.category] || '🎟️';
 
-      // Ratings for BookMyShow realism
+      // Ratings for realistic audience feedback
       const rating = (8.8 + ((event.id * 3) % 11) / 10).toFixed(1);
       const votes = `${(10 + (event.id * 4.7)).toFixed(1)}K`;
 

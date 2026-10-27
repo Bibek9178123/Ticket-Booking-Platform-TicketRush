@@ -98,7 +98,7 @@ public class CatalogSyncService {
 
         int count = 0;
         String[] cities = {"Mumbai", "Delhi-NCR", "Bangalore", "Hyderabad", "Pune"};
-        String[] cinemas = {"PVR Director's Cut", "INOX Laser IMAX", "Cinépolis VIP Lounge", "PVR Superplex"};
+        String[] cinemas = {"Grand Premiere Hall", "Laser IMAX Screen 1", "CineStar VIP Lounge", "Metropolis Superplex"};
 
         for (int i = 0; i < movies.size(); i++) {
             TmdbMovieDto m = movies.get(i);
