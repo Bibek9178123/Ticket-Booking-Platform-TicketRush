@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings - TicketRush</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .booking-card {
+      padding: 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .booking-card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .badge-status {
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .badge-confirmed {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .badge-pending {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .badge-expired {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .badge-cancelled {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .live-timer {
+      font-family: monospace;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">🎟️</div>
+        Ticket<span>Rush</span>
+      </a>
+      <nav class="nav-links" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1050px; margin: 0 auto; padding: 2rem 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 2.1rem; font-weight: 900; letter-spacing: -0.02em;">My Tickets & Orders</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Manage your active seat holds, confirmed digital passes, and ticket history.</p>
+      </div>
+      <a href="/index.html" class="btn btn-primary">
+        + Browse More Events
+      </a>
+    </div>
+
+    <!-- Bookings List -->
+    <div id="bookings-loading" class="glass-panel" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+      <div style="font-size: 2rem; margin-bottom: 0.75rem;">⏳</div>
+      Loading your booking history...
+    </div>
+
+    <div id="bookings-container" style="display: flex; flex-direction: column; gap: 1.25rem;"></div>
+
+    <div id="empty-state" class="glass-panel" style="display: none; padding: 4rem 2rem; text-align: center;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🎟️</div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">No bookings yet</h2>
+      <p style="color: var(--text-muted); max-width: 450px; margin: 0 auto 1.5rem; line-height: 1.6;">
+        You haven't reserved or purchased tickets to any events yet. Check out the live catalog and grab great seats!
+      </p>
+      <a href="/index.html" class="btn btn-primary">Explore Upcoming Events</a>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    if (!Auth.getToken()) {
+      window.location.href = '/login.html?redirect=/my-bookings.html';
+    }
+
+    async function loadUserBookings() {
+      try {
+        const response = await Api.get('/api/bookings/my?page=0&size=50');
+        const bookings = response.content || [];
+
+        document.getElementById('bookings-loading').style.display = 'none';
+
+        if (bookings.length === 0) {
+          document.getElementById('empty-state').style.display = 'block';
+          document.getElementById('bookings-container').innerHTML = '';
+          return;
+        }
+
+        document.getElementById('empty-state').style.display = 'none';
+        const container = document.getElementById('bookings-container');
+        container.innerHTML = '';
+
+        bookings.forEach(b => {
+          const bookingId = b.bookingId;
+          const remainingSecs = (b.remainingSeconds !== undefined && b.remainingSeconds !== null)
+            ? b.remainingSeconds
+            : Math.max(0, Math.floor((Api.parseUtc(b.holdExpiresAt) - Date.now()) / 1000));
+
+          const isHoldExpired = b.status === 'EXPIRED' || (b.status === 'PENDING_PAYMENT' && remainingSecs <= 0);
+
+          const card = document.createElement('div');
+          card.className = 'glass-panel booking-card';
+
+          // Status & Badge configuration
+          let badgeHtml = '';
+          let actionHtml = '';
+
+          if (b.status === 'CONFIRMED') {
+            badgeHtml = `<span class="badge-status badge-confirmed">● Confirmed</span>`;
+            actionHtml = `
+              <a href="/ticket.html?bookingId=${bookingId}" class="btn btn-primary" style="padding: 0.7rem 1.4rem; font-size: 0.92rem; font-weight: 800;">
+                View M-Ticket 🎟️
+              </a>
+            `;
+          } else if (b.status === 'PENDING_PAYMENT' && !isHoldExpired) {
+            const mins = String(Math.floor(remainingSecs / 60)).padStart(2, '0');
+            const secs = String(remainingSecs % 60).padStart(2, '0');
+            badgeHtml = `
+              <span class="badge-status badge-pending">⏳ Hold Active</span>
+              <span class="live-timer" data-seconds="${remainingSecs}">⏳ ${mins}:${secs} left</span>
+            `;
+            actionHtml = `
+              <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+                <button type="button" onclick="quickPay(${bookingId}, this)" class="btn btn-primary" style="padding: 0.7rem 1.25rem; font-size: 0.92rem; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
+                  ⚡ Pay & Confirm ($${parseFloat(b.totalAmount).toFixed(2)})
+                </button>
+                <a href="/checkout.html?bookingId=${bookingId}" class="btn btn-secondary" style="padding: 0.7rem 1rem; font-size: 0.88rem;">
+                  Review &rsaquo;
+                </a>
+              </div>
+            `;
+          } else if (isHoldExpired) {
+            badgeHtml = `<span class="badge-status badge-expired">✕ Hold Expired</span>`;
+            actionHtml = `
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                <a href="/event-details.html?id=${b.eventId}" class="btn btn-secondary" style="padding: 0.65rem 1.25rem; font-size: 0.88rem; color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+                  🔁 Re-Select Seats
+                </a>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">5-min window elapsed</span>
+              </div>
+            `;
+          } else if (b.status === 'CANCELLED') {
+            badgeHtml = `<span class="badge-status badge-cancelled">Refunded</span>`;
+            actionHtml = `
+              <a href="/event-details.html?id=${b.eventId}" class="btn btn-secondary" style="padding: 0.65rem 1.15rem; font-size: 0.88rem;">
+                Book Again &rarr;
+              </a>
+            `;
+          } else {
+            badgeHtml = `<span class="badge-status badge-cancelled">${b.status}</span>`;
+            actionHtml = `<span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">No actions</span>`;
+          }
+
+          // Seats summary badges
+          const seatsSummary = b.seats.map(s => `
+            <span style="display: inline-block; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 0.2rem 0.5rem; font-size: 0.8rem; font-weight: 700; color: #cbd5e1; margin-right: 0.35rem; margin-top: 0.25rem;">
+              Row ${s.rowLabel}-${s.seatNumber} (${s.tier})
+            </span>
+          `).join('');
+
+          const formattedDate = Api.formatDateTime(b.startsAt);
+
+          card.innerHTML = `
+            <div style="flex: 2; min-width: 280px;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; flex-wrap: wrap;">
+                ${badgeHtml}
+                ${b.bookingCode ? `<span style="font-family: monospace; font-size: 0.85rem; color: #818cf8; font-weight: 800; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); padding: 0.2rem 0.5rem; border-radius: 6px;">${b.bookingCode}</span>` : ''}
+              </div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.35rem; color: #fff;">${b.eventTitle}</h3>
+              <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                📍 ${b.venue}, ${b.city} • 📅 ${formattedDate}
+              </div>
+              <div>
+                ${seatsSummary}
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1.5rem; text-align: right; flex-wrap: wrap; justify-content: flex-end;">
+              <div>
+                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Total Amount</div>
+                <div style="font-size: 1.45rem; font-weight: 900; color: #38bdf8;">$${parseFloat(b.totalAmount).toFixed(2)}</div>
+              </div>
+              <div>
+                ${actionHtml}
+              </div>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        showToast(err.message || 'Failed to load bookings', 'error');
+      }
+    }
+
+    // Direct 1-Click Fast Payment
+    async function quickPay(bookingId, btn) {
+      if (!bookingId) {
+        showToast('Invalid booking ID', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>⏳</span> Authorizing...';
+
+      try {
+        // Step 1: Initiate payment record in backend
+        const initRes = await Api.post('/api/payments/initiate', { bookingId: parseInt(bookingId) });
+
+        btn.innerHTML = '<span>⚡</span> Confirming Ticket...';
+
+        // Step 2: Simulate provider payment confirmation webhook
+        await Api.post('/api/payments/mock-simulate', {
+          providerRef: initRes.providerRef,
+          bookingId: parseInt(bookingId),
+          eventType: 'payment.succeeded'
+        });
+
+        showToast('🎉 Payment Successful! Ticket Confirmed!', 'success');
+        btn.innerHTML = '<span>✅</span> Confirmed! Redirecting...';
+
+        setTimeout(() => {
+          window.location.href = `/ticket.html?bookingId=${bookingId}`;
+        }, 600);
+      } catch (err) {
+        showToast(err.message || 'Payment initiation failed', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        loadUserBookings();
+      }
+    }
+
+    // Live Countdown updater for active holds
+    setInterval(() => {
+      document.querySelectorAll('.live-timer').forEach(el => {
+        let sec = parseInt(el.dataset.seconds);
+        if (isNaN(sec)) return;
+        sec--;
+        el.dataset.seconds = sec;
+
+        if (sec <= 0) {
+          el.textContent = 'Expired';
+          el.style.color = '#ef4444';
+          if (!el.dataset.expiredTriggered) {
+            el.dataset.expiredTriggered = 'true';
+            setTimeout(loadUserBookings, 800);
+          }
+        } else {
+          const mins = String(Math.floor(sec / 60)).padStart(2, '0');
+          const secs = String(sec % 60).padStart(2, '0');
+          el.textContent = `⏳ ${mins}:${secs} left`;
+        }
+      });
+    }, 1000);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = Api.getUser();
+      if (!user) {
+        window.location.href = '/login.html';
+        return;
+      }
+      if (user.role === 'ADMIN') {
+        Api.toast('Administrators oversee bookings from the Admin Console.', 'info');
+        setTimeout(() => { window.location.href = '/admin.html'; }, 600);
+        return;
+      }
+      loadUserBookings();
+    });
+  </script>
+</body>
+</html>

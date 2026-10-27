@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizer Studio - TicketRush</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">🎟️</div>
+        Ticket<span>Rush</span>
+      </a>
+      <nav class="nav-links" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <main>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div class="card-tag" style="margin-bottom: 0.5rem;">Organizer Workspace</div>
+        <h1 style="font-size: 2.4rem; font-weight: 900; letter-spacing: -0.02em;">Event Studio</h1>
+        <p style="color: var(--text-secondary); font-size: 1rem;">Publish events, configure row-tier pricing, check in attendees, and manage seat maps.</p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button id="btn-toggle-checkin" class="btn btn-secondary" onclick="toggleCheckInModal()">
+          <span>🎟️</span> Check-In Attendee
+        </button>
+        <button id="btn-toggle-create" class="btn btn-primary" onclick="toggleCreateModal()">
+          <span>+</span> Create Event Draft
+        </button>
+      </div>
+    </div>
+
+    <!-- Ticket Check-In Scanner Section -->
+    <div id="checkin-modal" class="glass-panel" style="display: none; padding: 2rem; margin-bottom: 2.5rem; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+          <span>📱</span> Entrance Ticket Check-In
+        </h2>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleCheckInModal()">✕ Close</button>
+      </div>
+      <form id="checkin-form" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <input type="text" id="checkin-code" class="form-control" style="flex: 1; min-width: 260px; font-family: monospace; font-size: 1rem; text-transform: uppercase;" placeholder="Enter Booking Code (e.g. TR-XXXXXXXXXX)" required>
+        <button type="submit" id="btn-checkin-submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+          Verify & Admit &rarr;
+        </button>
+      </form>
+      <div id="checkin-result" style="display: none; margin-top: 1.25rem; padding: 1.25rem; border-radius: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color);"></div>
+    </div>
+
+    <!-- Create Event Section -->
+    <div id="create-modal" class="glass-panel" style="display: none; padding: 2.5rem; margin-bottom: 3rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 800;">Draft a New Event</h2>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleCreateModal()">✕ Close</button>
+      </div>
+
+      <div id="create-error" class="alert alert-error" style="display: none;"></div>
+
+      <form id="create-event-form">
+        <!-- Quick Autofill with TMDB / Ticketmaster -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+          <label style="font-weight: 700; font-size: 0.9rem; color: #818cf8; display: block; margin-bottom: 0.4rem;">
+            🔍 Fast Autofill from TMDB Movies / Ticketmaster Shows
+          </label>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <input type="text" id="catalog-search-input" class="form-control" style="flex: 1; min-width: 220px;" placeholder="Search real movie or concert (e.g. Dune, Coldplay, Zakir)...">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="searchCatalogAutofill()">Search Live Feeds</button>
+          </div>
+          <div id="catalog-autofill-results" style="display: none; margin-top: 0.75rem; max-height: 200px; overflow-y: auto; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div class="form-group">
+            <label for="event-title">Event Title *</label>
+            <input type="text" id="event-title" class="form-control" placeholder="e.g. Neon Horizon Festival" required>
+          </div>
+          <div class="form-group">
+            <label for="event-category">Category *</label>
+            <select id="event-category" class="form-control" required>
+              <option value="Movies">Cinema Movies</option>
+              <option value="Concerts">Concerts</option>
+              <option value="Music">Music</option>
+              <option value="Sports">Sports</option>
+              <option value="Theater">Theater</option>
+              <option value="Comedy">Comedy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="event-city">City *</label>
+            <input type="text" id="event-city" class="form-control" placeholder="e.g. San Francisco" required>
+          </div>
+          <div class="form-group">
+            <label for="event-venue">Venue Name *</label>
+            <input type="text" id="event-venue" class="form-control" placeholder="e.g. Bill Graham Civic Auditorium" required>
+          </div>
+          <div class="form-group">
+            <label for="event-starts">Starts At *</label>
+            <input type="datetime-local" id="event-starts" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="event-ends">Ends At *</label>
+            <input type="datetime-local" id="event-ends" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="event-rows">Total Seating Rows (1 - 50) *</label>
+            <input type="number" id="event-rows" class="form-control" value="5" min="1" max="50" required>
+          </div>
+          <div class="form-group">
+            <label for="event-seats-row">Seats Per Row (1 - 50) *</label>
+            <input type="number" id="event-seats-row" class="form-control" value="8" min="1" max="50" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem;">
+          <label for="event-desc">Event Description</label>
+          <textarea id="event-desc" class="form-control" rows="3" placeholder="Provide event schedule, artists, or venue guidelines..."></textarea>
+        </div>
+
+        <!-- Tier Pricing Configuration -->
+        <div style="margin-top: 1.75rem; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="font-size: 1.1rem; font-weight: 700;">Seat Tier Pricing Matrix</h3>
+              <p style="color: var(--text-muted); font-size: 0.82rem;">Define row-range pricing tiers. Rows inside each range receive the configured tier name and price.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addTierRow()">+ Add Tier</button>
+          </div>
+          <div id="tiers-container" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+          <button type="button" class="btn btn-secondary" onclick="toggleCreateModal()">Cancel</button>
+          <button type="submit" id="btn-save-event" class="btn btn-primary">Save Event Draft</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- My Events Table -->
+    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1.25rem;">Events Managed by You</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Event Title</th>
+            <th>Location</th>
+            <th>Event Date</th>
+            <th>Capacity</th>
+            <th>Status</th>
+            <th>Management Actions</th>
+          </tr>
+        </thead>
+        <tbody id="my-events-body">
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading managed events...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    function toggleCreateModal() {
+      const modal = document.getElementById('create-modal');
+      modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+      if (modal.style.display === 'block') {
+        modal.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    async function searchCatalogAutofill() {
+      const input = document.getElementById('catalog-search-input');
+      const query = input.value.trim();
+      const resultsDiv = document.getElementById('catalog-autofill-results');
+
+      if (!query) {
+        showToast('Please enter a movie or show name to search', 'error');
+        return;
+      }
+
+      resultsDiv.style.display = 'block';
+      resultsDiv.innerHTML = '<div style="color: var(--text-muted); padding: 0.5rem; text-align: center;">Searching TMDB and Ticketmaster...</div>';
+
+      try {
+        const [movies, shows] = await Promise.all([
+          api.get(`/catalog/search-movies?query=${encodeURIComponent(query)}`).catch(() => []),
+          api.get(`/catalog/search-shows?query=${encodeURIComponent(query)}`).catch(() => [])
+        ]);
+
+        const all = [
+          ...(movies || []).map(m => ({
+            title: m.title,
+            desc: m.overview,
+            category: 'Movies',
+            city: 'Mumbai',
+            venue: 'PVR IMAX Phoenix',
+            poster: m.poster_path ? ('https://image.tmdb.org/t/p/w780' + m.poster_path) : null,
+            badge: '🎬 TMDB Movie'
+          })),
+          ...(shows || []).map(s => ({
+            title: s.name,
+            desc: 'Live touring entertainment with premium stadium acoustics.',
+            category: s.classifications?.[0]?.segment?.name === 'Sports' ? 'Sports' : 'Concerts',
+            city: s.embedded?.venues?.[0]?.city?.name || 'Mumbai',
+            venue: s.embedded?.venues?.[0]?.name || 'National Stadium',
+            poster: s.images?.[0]?.url || null,
+            badge: '🎤 Ticketmaster Show'
+          }))
+        ];
+
+        if (all.length === 0) {
+          resultsDiv.innerHTML = '<div style="color: var(--text-muted); padding: 0.5rem;">No matching movies or shows found.</div>';
+          return;
+        }
+
+        resultsDiv.innerHTML = '';
+        all.slice(0, 6).forEach(item => {
+          const row = document.createElement('div');
+          row.style.cssText = 'padding: 0.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; transition: background 0.2s;';
+          row.onmouseenter = () => row.style.background = 'rgba(255, 255, 255, 0.05)';
+          row.onmouseleave = () => row.style.background = 'transparent';
+          row.innerHTML = `
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">${item.title}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">${item.venue}, ${item.city}</div>
+            </div>
+            <span style="font-size: 0.75rem; background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700;">${item.badge}</span>
+          `;
+          row.onclick = () => {
+            document.getElementById('event-title').value = item.title;
+            document.getElementById('event-category').value = item.category;
+            document.getElementById('event-city').value = item.city;
+            document.getElementById('event-venue').value = item.venue;
+            if (item.desc) document.getElementById('event-desc').value = item.desc;
+            resultsDiv.style.display = 'none';
+            api.toast(`Autofilled details for "${item.title}"!`, 'success');
+          };
+          resultsDiv.appendChild(row);
+        });
+      } catch (err) {
+        resultsDiv.innerHTML = `<div style="color: #f87171; padding: 0.5rem;">Search error: ${err.message}</div>`;
+      }
+    }
+
+    function toggleCheckInModal() {
+      const modal = document.getElementById('checkin-modal');
+      modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
+      if (modal.style.display === 'block') {
+        document.getElementById('checkin-code').focus();
+      }
+    }
+
+    function addTierRow(name = 'General', start = 1, end = 5, price = 50.00) {
+      const container = document.getElementById('tiers-container');
+      const row = document.createElement('div');
+      row.className = 'tier-row';
+      row.style.display = 'grid';
+      row.style.gridTemplateColumns = '2fr 1fr 1fr 1fr auto';
+      row.style.gap = '0.75rem';
+      row.style.alignItems = 'center';
+
+      row.innerHTML = `
+        <input type="text" class="form-control tier-name" placeholder="Tier Name (e.g. VIP)" value="${name}" required>
+        <input type="number" class="form-control tier-start" placeholder="Row Start" value="${start}" min="1" required>
+        <input type="number" class="form-control tier-end" placeholder="Row End" value="${end}" min="1" required>
+        <input type="number" step="0.01" class="form-control tier-price" placeholder="Price $" value="${price}" min="0" required>
+        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" title="Remove Tier">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    async function loadOrganizerEvents() {
+      const tbody = document.getElementById('my-events-body');
+      tbody.textContent = '';
+
+      try {
+        const page = await api.get('/events/my');
+        if (!page.content || page.content.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">No events created yet. Click "+ Create Event Draft" above to begin!</td></tr>';
+          return;
+        }
+
+        page.content.forEach(event => {
+          const tr = document.createElement('tr');
+
+          const titleTd = document.createElement('td');
+          titleTd.style.fontWeight = '700';
+          titleTd.textContent = event.title;
+
+          const locTd = document.createElement('td');
+          locTd.textContent = `${event.venue}, ${event.city}`;
+
+          const dateTd = document.createElement('td');
+          dateTd.textContent = new Date(event.startsAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+          const gridTd = document.createElement('td');
+          gridTd.innerHTML = `<strong>${event.totalSeats}</strong> seats`;
+
+          const statusTd = document.createElement('td');
+          const statusBadge = document.createElement('span');
+          statusBadge.className = `role-pill role-${event.status === 'PUBLISHED' ? 'CUSTOMER' : event.status === 'DRAFT' ? 'ORGANIZER' : 'ADMIN'}`;
+          statusBadge.textContent = event.status;
+          statusTd.appendChild(statusBadge);
+
+          const actionsTd = document.createElement('td');
+          actionsTd.style.display = 'flex';
+          actionsTd.style.gap = '0.5rem';
+
+          if (event.status === 'DRAFT') {
+            const pubBtn = document.createElement('button');
+            pubBtn.className = 'btn btn-primary btn-sm';
+            pubBtn.textContent = '🚀 Publish (Gen Seats)';
+            pubBtn.onclick = () => publishEvent(event.id);
+            actionsTd.appendChild(pubBtn);
+          } else if (event.status === 'PUBLISHED') {
+            const viewLink = document.createElement('a');
+            viewLink.href = `/event-details.html?id=${event.id}`;
+            viewLink.className = 'btn btn-secondary btn-sm';
+            viewLink.textContent = 'Seat Map';
+            actionsTd.appendChild(viewLink);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-danger btn-sm';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = () => cancelEvent(event.id);
+            actionsTd.appendChild(cancelBtn);
+          }
+
+          tr.appendChild(titleTd);
+          tr.appendChild(locTd);
+          tr.appendChild(dateTd);
+          tr.appendChild(gridTd);
+          tr.appendChild(statusTd);
+          tr.appendChild(actionsTd);
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function publishEvent(id) {
+      if (!confirm('Publishing will permanently generate all physical seat records in MySQL. Proceed?')) return;
+      try {
+        await api.post(`/events/${id}/publish`);
+        api.toast('Event published! Seats generated successfully.', 'success');
+        loadOrganizerEvents();
+      } catch (err) {
+        api.toast(err.message || 'Failed to publish event.', 'error');
+      }
+    }
+
+    async function cancelEvent(id) {
+      if (!confirm('Are you sure you want to cancel this event?')) return;
+      try {
+        await api.post(`/events/${id}/cancel`);
+        api.toast('Event has been cancelled.', 'info');
+        loadOrganizerEvents();
+      } catch (err) {
+        api.toast(err.message || 'Failed to cancel event.', 'error');
+      }
+    }
+
+    document.getElementById('create-event-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorDiv = document.getElementById('create-error');
+      errorDiv.style.display = 'none';
+
+      const title = document.getElementById('event-title').value.trim();
+      const category = document.getElementById('event-category').value;
+      const city = document.getElementById('event-city').value.trim();
+      const venue = document.getElementById('event-venue').value.trim();
+      const startsAt = document.getElementById('event-starts').value;
+      const endsAt = document.getElementById('event-ends').value;
+      const rowCount = parseInt(document.getElementById('event-rows').value, 10);
+      const seatsPerRow = parseInt(document.getElementById('event-seats-row').value, 10);
+      const description = document.getElementById('event-desc').value.trim();
+
+      const tierRows = document.querySelectorAll('#tiers-container .tier-row');
+      const tiers = [];
+      tierRows.forEach(tr => {
+        tiers.push({
+          name: tr.querySelector('.tier-name').value.trim(),
+          rowStart: parseInt(tr.querySelector('.tier-start').value, 10),
+          rowEnd: parseInt(tr.querySelector('.tier-end').value, 10),
+          price: parseFloat(tr.querySelector('.tier-price').value)
+        });
+      });
+
+      if (tiers.length === 0) {
+        errorDiv.textContent = 'Please configure at least one tier pricing rule.';
+        errorDiv.style.display = 'flex';
+        return;
+      }
+
+      try {
+        await api.post('/events', {
+          title, category, city, venue, startsAt, endsAt,
+          rowCount, seatsPerRow, description, tiers
+        });
+
+        api.toast('Draft event created successfully!', 'success');
+        toggleCreateModal();
+        document.getElementById('create-event-form').reset();
+        loadOrganizerEvents();
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Failed to create event.';
+        errorDiv.style.display = 'flex';
+      }
+    });
+
+    document.getElementById('checkin-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const codeInput = document.getElementById('checkin-code');
+      const bookingCode = codeInput.value.trim().toUpperCase();
+      const resultDiv = document.getElementById('checkin-result');
+      const submitBtn = document.getElementById('btn-checkin-submit');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+      resultDiv.style.display = 'none';
+
+      try {
+        const booking = await api.post('/bookings/check-in', { bookingCode });
+        api.toast(`🎉 Verified! Ticket ${bookingCode} checked in.`, 'success');
+        resultDiv.style.display = 'block';
+        resultDiv.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        resultDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #34d399; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.5rem;">
+            <span>✅</span> ADMISSION GRANTED
+          </div>
+          <div style="font-size: 0.95rem; margin-bottom: 0.35rem;">Event: <strong>${booking.eventTitle}</strong></div>
+          <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Seats: ${booking.seats.map(s => `Row ${s.rowLabel}-${s.seatNumber}`).join(', ')}</div>
+          <div style="font-size: 0.8rem; color: #38bdf8;">Checked in at: ${new Date(booking.checkedInAt).toLocaleString()}</div>
+        `;
+        codeInput.value = '';
+      } catch (err) {
+        api.toast(err.message || 'Check-in failed.', 'error');
+        resultDiv.style.display = 'block';
+        resultDiv.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        resultDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #f87171; font-weight: 800; font-size: 1.1rem; margin-bottom: 0.35rem;">
+            <span>❌</span> ADMISSION REJECTED
+          </div>
+          <div style="font-size: 0.9rem; color: #cbd5e1;">${err.message || 'Invalid or already checked-in booking code.'}</div>
+        `;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verify & Admit →';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = api.getUser();
+      if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN')) {
+        api.toast('Access denied: Organizer access required.', 'error');
+        setTimeout(() => { window.location.href = '/login.html'; }, 1000);
+        return;
+      }
+
+      addTierRow('VIP', 1, 2, 100.00);
+      addTierRow('General', 3, 5, 45.00);
+
+      const now = new Date();
+      now.setDate(now.getDate() + 7);
+      now.setHours(19, 0, 0, 0);
+      document.getElementById('event-starts').value = now.toISOString().slice(0, 16);
+      now.setHours(22, 0, 0, 0);
+      document.getElementById('event-ends').value = now.toISOString().slice(0, 16);
+
+      loadOrganizerEvents();
+    });
+  </script>
+</body>
+</html>

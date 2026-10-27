@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account & Settings - TicketRush</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 860px) {
+      .profile-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .profile-nav-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      height: fit-content;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+    .profile-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1.15rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 0.4rem;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .profile-nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .profile-nav-item.active {
+      background: var(--bms-red-subtle);
+      color: var(--bms-red);
+      border-color: rgba(248, 68, 100, 0.3);
+    }
+    .profile-content-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .user-avatar-circle {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--bms-red) 0%, #a81d39 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 8px 25px var(--bms-red-glow);
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Global Header -->
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">🎟️</div>
+        Ticket<span>Rush</span>
+      </a>
+      <div class="nav-search-bar">
+        <span class="nav-search-icon">🔍</span>
+        <input type="text" id="nav-search-input" placeholder="Search for events, artists, venues...">
+      </div>
+      <nav class="nav-right-actions" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 6rem; width: 100%;">
+    <!-- Navigation Back -->
+    <div style="margin-bottom: 1.5rem;">
+      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8;">
+        &larr; Back to Events Catalog
+      </a>
+    </div>
+
+    <!-- User Profile Header Banner -->
+    <div class="glass-panel" style="padding: 2.25rem; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, #191e30 0%, #121522 100%); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 1.75rem;">
+        <div id="avatar-initial" class="user-avatar-circle">U</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+            <h1 id="banner-name" style="font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; color: #fff;">Loading Profile...</h1>
+            <span id="banner-role-pill" class="role-pill role-CUSTOMER">CUSTOMER</span>
+          </div>
+          <div style="color: #94a3b8; font-size: 0.92rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+            <span>✉️ <strong id="banner-email" style="color: #cbd5e1;">user@ticketrush.com</strong></span>
+            <span>📍 Preferred City: <strong id="banner-city" style="color: #38bdf8;">Hyderabad</strong></span>
+            <span>🗓️ Member Since: <strong id="banner-member-since" style="color: #cbd5e1;">Recently</strong></span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <a href="/my-bookings.html" class="btn btn-secondary btn-sm" style="padding: 0.65rem 1.25rem; font-weight: 800;">
+          🎟️ View My Tickets &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Settings Hub Layout -->
+    <div class="profile-layout">
+      <!-- Left Sidebar Nav -->
+      <aside class="profile-nav-card">
+        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 900; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1rem; padding-left: 0.5rem;">
+          Account Hub
+        </div>
+        <div class="profile-nav-item active" onclick="switchTab('profile-tab')">
+          <span>👤</span> Personal Profile
+        </div>
+        <div class="profile-nav-item" onclick="switchTab('security-tab')">
+          <span>🔒</span> Security & Password
+        </div>
+        <div class="profile-nav-item" onclick="switchTab('insights-tab')">
+          <span>📊</span> Spending & Activity
+        </div>
+        <div style="height: 1px; background: rgba(255, 255, 255, 0.08); margin: 1rem 0;"></div>
+        <a href="/my-bookings.html" class="profile-nav-item" style="color: #94a3b8;">
+          <span>🎟️</span> My Bookings
+        </a>
+        <a href="/index.html" class="profile-nav-item" style="color: #94a3b8;">
+          <span>🌐</span> Explore Storefront
+        </a>
+      </aside>
+
+      <!-- Right Tab Content Area -->
+      <section class="profile-content-card">
+        <!-- TAB 1: EDIT PROFILE -->
+        <div id="profile-tab" class="tab-content active">
+          <div style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.45rem; font-weight: 900; color: #fff; margin-bottom: 0.35rem;">Personal Information</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your public display name, contact phone number, and default entertainment city.</p>
+          </div>
+
+          <form id="form-edit-profile" onsubmit="handleUpdateProfile(event)" style="display: flex; flex-direction: column; gap: 1.4rem; max-width: 600px;">
+            <div>
+              <label for="input-name" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Full Name <span style="color: var(--bms-red);">*</span>
+              </label>
+              <input type="text" id="input-name" class="form-control" required placeholder="Your full name" style="padding: 0.85rem 1rem;">
+            </div>
+
+            <div>
+              <label for="input-email" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Email Address
+              </label>
+              <input type="email" id="input-email" class="form-control" disabled style="padding: 0.85rem 1rem; opacity: 0.65; cursor: not-allowed; background: #0e121d;">
+              <small style="display: block; margin-top: 0.35rem; color: var(--text-muted); font-size: 0.78rem;">
+                🔒 Account identifier is permanently verified and cannot be modified.
+              </small>
+            </div>
+
+            <div>
+              <label for="input-phone" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Phone Number (for Ticket SMS Alerts)
+              </label>
+              <input type="text" id="input-phone" class="form-control" placeholder="+91 98765 43210" style="padding: 0.85rem 1rem;">
+            </div>
+
+            <div>
+              <label for="select-city" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Preferred Entertainment City
+              </label>
+              <select id="select-city" class="form-control" style="padding: 0.85rem 1rem; cursor: pointer;">
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi-NCR">Delhi-NCR</option>
+                <option value="Bangalore">Bangalore</option>
+                <option value="Pune">Pune</option>
+                <option value="Chandigarh">Chandigarh</option>
+              </select>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <button type="submit" id="btn-save-profile" class="btn btn-primary" style="padding: 0.85rem 2rem; font-weight: 800;">
+                💾 Save Profile Changes
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 2: SECURITY & PASSWORD -->
+        <div id="security-tab" class="tab-content">
+          <div style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.45rem; font-weight: 900; color: #fff; margin-bottom: 0.35rem;">Security & Password</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Keep your account secure by rotating your password regularly.</p>
+          </div>
+
+          <form id="form-change-password" onsubmit="handleChangePassword(event)" style="display: flex; flex-direction: column; gap: 1.4rem; max-width: 600px;">
+            <div>
+              <label for="input-current-pass" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Current Password <span style="color: var(--bms-red);">*</span>
+              </label>
+              <input type="password" id="input-current-pass" class="form-control" required placeholder="••••••••" style="padding: 0.85rem 1rem;">
+            </div>
+
+            <div>
+              <label for="input-new-pass" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                New Password (Minimum 6 characters) <span style="color: var(--bms-red);">*</span>
+              </label>
+              <input type="password" id="input-new-pass" class="form-control" required minlength="6" placeholder="••••••••" style="padding: 0.85rem 1rem;">
+            </div>
+
+            <div>
+              <label for="input-confirm-pass" style="display: block; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.45rem; color: #e2e8f0;">
+                Confirm New Password <span style="color: var(--bms-red);">*</span>
+              </label>
+              <input type="password" id="input-confirm-pass" class="form-control" required minlength="6" placeholder="••••••••" style="padding: 0.85rem 1rem;">
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <button type="submit" id="btn-update-pass" class="btn btn-primary" style="padding: 0.85rem 2rem; font-weight: 800;">
+                🔒 Update Password
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 3: SPENDING & ACTIVITY -->
+        <div id="insights-tab" class="tab-content">
+          <div style="margin-bottom: 2rem;">
+            <h2 style="font-size: 1.45rem; font-weight: 900; color: #fff; margin-bottom: 0.35rem;">Activity & Lifetime Spending</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Overview of your confirmed event tickets, reservations, and ticketing activity.</p>
+          </div>
+
+          <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2.5rem;">
+            <div class="stat-card">
+              <h4>Total Bookings</h4>
+              <p id="stat-total-bookings">0</p>
+            </div>
+            <div class="stat-card">
+              <h4>Confirmed Tickets</h4>
+              <p id="stat-confirmed-tickets" style="color: #34d399;">0</p>
+            </div>
+            <div class="stat-card">
+              <h4>Lifetime Spend</h4>
+              <p id="stat-total-spent" style="color: #38bdf8;">$0.00</p>
+            </div>
+            <div class="stat-card">
+              <h4>Member Status</h4>
+              <p style="font-size: 1.4rem; color: #fbbf24; margin-top: 0.3rem;">★ Gold Fan</p>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 2rem; background: #111422; border-color: rgba(255, 255, 255, 0.08); text-align: center;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;">Need to review your confirmed seats?</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+              Access your digital e-tickets, check-in QR codes, and booking receipts anytime.
+            </p>
+            <a href="/my-bookings.html" class="btn btn-primary" style="padding: 0.8rem 1.85rem; font-weight: 800;">
+              🎟️ Open My Bookings Hub
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.profile-nav-item').forEach(el => el.classList.remove('active'));
+
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) targetTab.classList.add('active');
+
+      const activeNav = Array.from(document.querySelectorAll('.profile-nav-item')).find(el => el.getAttribute('onclick')?.includes(tabId));
+      if (activeNav) activeNav.classList.add('active');
+    }
+
+    async function loadUserProfile() {
+      const user = api.getUser();
+      if (!user) {
+        window.location.href = '/login.html?redirect=/profile.html';
+        return;
+      }
+
+      try {
+        const profile = await api.get('/users/me');
+
+        // Populate Header Banner
+        document.getElementById('banner-name').textContent = profile.name || user.name;
+        document.getElementById('banner-email').textContent = profile.email;
+        document.getElementById('banner-city').textContent = profile.preferredCity || 'Hyderabad';
+        document.getElementById('avatar-initial').textContent = (profile.name || user.name).charAt(0).toUpperCase();
+
+        const rolePill = document.getElementById('banner-role-pill');
+        rolePill.className = `role-pill role-${profile.role}`;
+        rolePill.textContent = profile.role;
+
+        if (profile.createdAt) {
+          const dt = new Date(profile.createdAt);
+          document.getElementById('banner-member-since').textContent = dt.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+        }
+
+        // Populate Form Fields
+        document.getElementById('input-name').value = profile.name || '';
+        document.getElementById('input-email').value = profile.email || '';
+        document.getElementById('input-phone').value = profile.phone || '';
+        if (profile.preferredCity) {
+          document.getElementById('select-city').value = profile.preferredCity;
+        }
+
+        // Load stats
+        loadUserStats();
+      } catch (err) {
+        api.toast(err.message || 'Failed to load user profile.', 'error');
+      }
+    }
+
+    async function loadUserStats() {
+      try {
+        const stats = await api.get('/users/me/stats');
+        document.getElementById('stat-total-bookings').textContent = stats.totalBookings;
+        document.getElementById('stat-confirmed-tickets').textContent = stats.confirmedTickets;
+        document.getElementById('stat-total-spent').textContent = `$${Number(stats.totalSpent || 0).toFixed(2)}`;
+        if (stats.memberSince) {
+          document.getElementById('banner-member-since').textContent = stats.memberSince;
+        }
+      } catch (err) {
+        console.warn('Unable to load user stats:', err);
+      }
+    }
+
+    async function handleUpdateProfile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-profile');
+      btn.disabled = true;
+      btn.textContent = '⏳ Saving Changes...';
+
+      const name = document.getElementById('input-name').value.trim();
+      const phone = document.getElementById('input-phone').value.trim();
+      const preferredCity = document.getElementById('select-city').value;
+
+      try {
+        const updated = await api.put('/users/me', {
+          name: name,
+          phone: phone,
+          preferredCity: preferredCity
+        });
+
+        // Update local storage user state so header reflects the new name immediately
+        const currentUser = api.getUser();
+        if (currentUser) {
+          currentUser.name = updated.name;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+
+        api.toast('Profile updated successfully!', 'success');
+        await loadUserProfile();
+        api.renderNavbar();
+      } catch (err) {
+        api.toast(err.message || 'Failed to update profile.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Profile Changes';
+      }
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const currentPassword = document.getElementById('input-current-pass').value;
+      const newPassword = document.getElementById('input-new-pass').value;
+      const confirmPassword = document.getElementById('input-confirm-pass').value;
+
+      if (newPassword !== confirmPassword) {
+        api.toast('New passwords do not match. Please retype.', 'error');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        api.toast('New password must be at least 6 characters.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-update-pass');
+      btn.disabled = true;
+      btn.textContent = '⏳ Updating Password...';
+
+      try {
+        const res = await api.put('/users/me/password', {
+          currentPassword: currentPassword,
+          newPassword: newPassword
+        });
+
+        api.toast(res.message || 'Password changed successfully! Keep it safe.', 'success');
+        document.getElementById('form-change-password').reset();
+      } catch (err) {
+        api.toast(err.message || 'Failed to change password. Check your current password.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔒 Update Password';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadUserProfile);
+  </script>
+</body>
+</html>

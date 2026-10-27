@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Seats - TicketRush (BookMyShow Style)</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">🎟️</div>
+        Ticket<span>Rush</span>
+      </a>
+      <div class="nav-search-bar">
+        <span class="nav-search-icon">🔍</span>
+        <input type="text" placeholder="Search for events, artists, venues...">
+      </div>
+      <nav class="nav-right-actions" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1240px; margin: 0 auto; padding: 2rem 1.5rem 7rem; width: 100%;">
+    <!-- Back to Catalog -->
+    <div style="margin-bottom: 1.25rem;">
+      <a href="/index.html" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: #94a3b8;">
+        &larr; Back to Events Catalog
+      </a>
+    </div>
+
+    <!-- Event Banner Card -->
+    <div id="event-header" class="glass-panel" style="padding: 2.25rem; margin-bottom: 2rem; position: relative; overflow: hidden; background: linear-gradient(135deg, #1e1b38 0%, #111424 100%);">
+      <div id="loading-header" style="color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚡</span> Loading showtime details & seating plan...
+      </div>
+      <div id="header-content" style="display: none;">
+        <span id="event-category" class="card-tag" style="background: rgba(248, 68, 100, 0.15); border-color: rgba(248, 68, 100, 0.35); color: #f84464;"></span>
+        <h1 id="event-title" style="font-size: 2.4rem; font-weight: 900; margin-bottom: 0.6rem; letter-spacing: -0.02em; color: #fff;"></h1>
+        <div id="event-meta-info" style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 1.25rem; display: flex; gap: 1.75rem; flex-wrap: wrap;"></div>
+        <p id="event-description" style="line-height: 1.6; color: #94a3b8; max-width: 800px; font-size: 0.92rem;"></p>
+      </div>
+    </div>
+
+    <!-- BookMyShow Stadium Seat Map Container -->
+    <div class="seat-map-wrapper">
+      <div style="text-align: center; margin-bottom: 2.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.3rem;">Interactive Stadium Map</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          Select up to 6 seats. Click an available armchair to add it to your booking dock.
+        </p>
+      </div>
+
+      <!-- BookMyShow Screen at the Top -->
+      <div class="bms-screen-container">
+        <div class="bms-screen-curve"></div>
+        <div class="bms-screen-light-beam"></div>
+        <div class="bms-screen-text">All eyes this way please! STAGE / SCREEN</div>
+      </div>
+
+      <!-- Scrollable Seat Matrix -->
+      <div class="seat-grid-scroll">
+        <div id="seat-grid" class="seat-grid">
+          <div style="color: var(--text-muted); padding: 2rem;">Loading venue seating plan...</div>
+        </div>
+      </div>
+
+      <!-- Accessible BookMyShow Status Legend -->
+      <div class="legend-panel">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: var(--seat-available-bg); border: 1.5px solid var(--seat-available-border);"></div>
+          <span><strong>Available</strong> (Ready to pick)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: var(--bms-red); border: 1.5px solid var(--bms-red);"></div>
+          <span><strong>Selected</strong> (In your dock)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: var(--seat-held-bg); border: 1.5px solid var(--seat-held-border);"></div>
+          <span><strong>Fast Filling / Held</strong></span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: var(--seat-booked-bg); border: 1.5px solid var(--seat-booked-border);"></div>
+          <span><strong>Sold Out</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BookMyShow Sticky Bottom Booking Bar -->
+    <div id="checkout-dock" class="checkout-dock hidden">
+      <div class="dock-inner">
+        <div>
+          <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+            Selected Seats (<span id="dock-count">0</span> / 6 max)
+          </div>
+          <div id="dock-seats-list" class="dock-seats-list"></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1.75rem;">
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8;">Total Price</div>
+            <div id="dock-total-price" style="font-size: 1.5rem; font-weight: 900; color: #38bdf8;">$0.00</div>
+          </div>
+          <button id="btn-proceed-hold" class="btn btn-primary" style="padding: 0.9rem 2rem; font-size: 1.05rem;" onclick="proceedToHold()">
+            Book Selected Seats &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+
+    if (!eventId) {
+      window.location.href = '/index.html';
+    }
+
+    const selectedSeats = new Map(); // seatId -> { id, rowLabel, seatNumber, tier, price }
+
+    const categoryPosters = {
+      'Concerts': 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1200&q=80',
+      'Music': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+      'Comedy': 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=1200&q=80',
+      'Sports': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80',
+      'Theater': 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80'
+    };
+
+    const specificPosters = {
+      'Coldplay: Music of the Spheres World Tour': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+      'Zakir Khan Live: Tathastu & New Stories': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80',
+      'ICC Champions Clash: India vs Australia': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80',
+      'Rock Revolution 2026 Live': 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=1200&q=80'
+    };
+
+    async function loadEventDetails() {
+      try {
+        const event = await api.get(`/events/${eventId}`);
+        document.getElementById('loading-header').style.display = 'none';
+        document.getElementById('header-content').style.display = 'block';
+
+        const posterUrl = specificPosters[event.title] || categoryPosters[event.category] || categoryPosters['Concerts'];
+        const headerEl = document.getElementById('event-header');
+        headerEl.style.background = `linear-gradient(90deg, rgba(11, 14, 23, 0.95) 0%, rgba(17, 20, 36, 0.88) 55%, rgba(11, 14, 23, 0.7) 100%), url('${posterUrl}') center/cover no-repeat`;
+
+        document.getElementById('event-category').textContent = event.category;
+        document.getElementById('event-title').textContent = event.title;
+
+        const dateStr = new Date(event.startsAt).toLocaleString(undefined, {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const metaContainer = document.getElementById('event-meta-info');
+        metaContainer.innerHTML = `
+          <span>📍 <strong>${event.venue}</strong>, ${event.city}</span>
+          <span>🗓️ <strong>${dateStr}</strong></span>
+          <span>🪑 <strong>${event.totalSeats} Total Seats</strong></span>
+        `;
+
+        document.getElementById('event-description').textContent = event.description || 'Join thousands of fans for this incredible event. Verified ticketing with zero double-booking guarantee.';
+      } catch (err) {
+        document.getElementById('loading-header').textContent = 'Unable to load event details.';
+      }
+    }
+
+    async function loadSeatMap() {
+      const seatGrid = document.getElementById('seat-grid');
+
+      try {
+        const map = await api.get(`/events/${eventId}/seats`);
+        seatGrid.textContent = ''; // clear
+
+        // Group seats by tier and row
+        const rows = new Map();
+        let lastTier = null;
+
+        map.seats.forEach(seat => {
+          if (!rows.has(seat.rowLabel)) {
+            rows.set(seat.rowLabel, { tier: seat.tier, price: seat.price, seats: [] });
+          }
+          rows.get(seat.rowLabel).seats.push(seat);
+        });
+
+        rows.forEach((rowData, rowLabel) => {
+          // Render BookMyShow tier header divider if tier changed
+          if (rowData.tier !== lastTier) {
+            const tierDivider = document.createElement('div');
+            tierDivider.className = 'tier-section-header';
+            tierDivider.innerHTML = `
+              <div class="tier-section-line"></div>
+              <span class="tier-section-title">${rowData.tier} SECTION - $${rowData.price.toFixed(2)}</span>
+              <div class="tier-section-line"></div>
+            `;
+            seatGrid.appendChild(tierDivider);
+            lastTier = rowData.tier;
+          }
+
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'seat-row';
+
+          const leftLabel = document.createElement('div');
+          leftLabel.className = 'row-label row-label-left';
+          leftLabel.textContent = `Row ${rowLabel}`;
+          rowDiv.appendChild(leftLabel);
+
+          rowData.seats.forEach(seat => {
+            const btn = document.createElement('button');
+            const isSelected = selectedSeats.has(seat.id);
+            const status = isSelected ? 'SELECTED' : seat.effectiveStatus;
+
+            btn.className = `seat-btn seat-${status}`;
+            btn.setAttribute('aria-label', `Row ${seat.rowLabel} Seat ${seat.seatNumber}, Tier ${seat.tier}, Price $${seat.price.toFixed(2)}, Status ${seat.effectiveStatus}`);
+            btn.title = `Row ${seat.rowLabel} Seat ${seat.seatNumber} (${seat.tier}) - $${seat.price.toFixed(2)} [${seat.effectiveStatus}]`;
+
+            btn.textContent = seat.seatNumber;
+
+            if (seat.effectiveStatus === 'AVAILABLE' || isSelected) {
+              btn.onclick = () => toggleSeat(seat);
+            } else {
+              btn.disabled = true;
+            }
+
+            rowDiv.appendChild(btn);
+          });
+
+          const rightLabel = document.createElement('div');
+          rightLabel.className = 'row-label row-label-right';
+          rightLabel.textContent = `Row ${rowLabel}`;
+          rowDiv.appendChild(rightLabel);
+
+          seatGrid.appendChild(rowDiv);
+        });
+
+      } catch (err) {
+        seatGrid.textContent = 'Failed to load live seat map.';
+      }
+    }
+
+    function toggleSeat(seat) {
+      if (selectedSeats.has(seat.id)) {
+        selectedSeats.delete(seat.id);
+        api.toast(`Deselected Seat ${seat.rowLabel}-${seat.seatNumber}`, 'info');
+      } else {
+        if (selectedSeats.size >= 6) {
+          api.toast('Anti-hoarding rule: Maximum 6 seats per transaction.', 'error');
+          return;
+        }
+        selectedSeats.set(seat.id, seat);
+        api.toast(`Selected Seat ${seat.rowLabel}-${seat.seatNumber} ($${seat.price})`, 'success');
+      }
+      updateDockUI();
+      loadSeatMap();
+    }
+
+    function removeSeat(seatId) {
+      selectedSeats.delete(seatId);
+      updateDockUI();
+      loadSeatMap();
+    }
+
+    function updateDockUI() {
+      const dock = document.getElementById('checkout-dock');
+      const list = document.getElementById('dock-seats-list');
+      const count = document.getElementById('dock-count');
+      const totalPrice = document.getElementById('dock-total-price');
+
+      count.textContent = selectedSeats.size;
+
+      if (selectedSeats.size === 0) {
+        dock.classList.add('hidden');
+        return;
+      }
+
+      dock.classList.remove('hidden');
+      list.textContent = ''; // clear
+
+      let total = 0;
+      selectedSeats.forEach(seat => {
+        total += seat.price;
+        const tag = document.createElement('div');
+        tag.className = 'dock-seat-tag';
+        tag.innerHTML = `
+          <span>Row ${seat.rowLabel}-${seat.seatNumber} ($${seat.price})</span>
+          <button type="button" onclick="removeSeat(${seat.id})" title="Remove">✕</button>
+        `;
+        list.appendChild(tag);
+      });
+
+      totalPrice.textContent = `$${total.toFixed(2)}`;
+      document.getElementById('btn-proceed-hold').textContent = `Book ${selectedSeats.size} Ticket${selectedSeats.size > 1 ? 's' : ''} • $${total.toFixed(2)}`;
+    }
+
+    async function proceedToHold() {
+      const user = api.getUser();
+      if (!user) {
+        api.toast('Please sign in to complete your reservation.', 'error');
+        setTimeout(() => { window.location.href = `/login.html?redirect=/event-details.html?id=${eventId}`; }, 800);
+        return;
+      }
+
+      if (user.role !== 'CUSTOMER') {
+        api.toast('Access Restricted: Administrative accounts cannot purchase consumer tickets. Please sign in with a Customer account.', 'error');
+        return;
+      }
+
+      const seatIds = Array.from(selectedSeats.keys());
+      if (seatIds.length === 0) {
+        api.toast('Please select at least 1 seat.', 'error');
+        return;
+      }
+
+      const holdBtn = document.getElementById('btn-proceed-hold');
+      holdBtn.disabled = true;
+      holdBtn.textContent = 'Locking Seats...';
+
+      try {
+        const response = await api.post('/bookings/hold', {
+          eventId: parseInt(eventId, 10),
+          seatIds: seatIds
+        });
+
+        api.toast(`🎉 Success! Held ${response.seatLabels.join(', ')} for 5 minutes. Redirecting to payment...`, 'success');
+        selectedSeats.clear();
+        updateDockUI();
+        setTimeout(() => {
+          window.location.href = `/checkout.html?bookingId=${response.bookingId}`;
+        }, 800);
+      } catch (err) {
+        api.toast(err.message || 'Seat unavailable: Another fan grabbed these seats!', 'error');
+        selectedSeats.clear();
+        updateDockUI();
+        loadSeatMap();
+      } finally {
+        holdBtn.disabled = false;
+        holdBtn.textContent = 'Book Selected Seats →';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadEventDetails();
+      loadSeatMap();
+      // Poll every 5 seconds for live status changes
+      setInterval(loadSeatMap, 5000);
+    });
+  </script>
+</body>
+</html>

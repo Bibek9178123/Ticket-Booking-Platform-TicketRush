@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Payment Gateway Sandbox - TicketRush</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .sandbox-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(236, 72, 153, 0.15);
+      color: #f472b6;
+      border: 1px solid rgba(236, 72, 153, 0.3);
+    }
+    .status-card {
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 1.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body style="background: radial-gradient(circle at top, #1e1b4b 0%, #030712 100%); min-height: 100vh; display: flex; flex-direction: column;">
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">💳</div>
+        Mock<span>Pay Sandbox</span>
+      </a>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span class="sandbox-badge">Simulation Mode</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+    <div class="glass-panel" style="max-width: 540px; width: 100%; padding: 2.5rem; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #6366f1, #ec4899);"></div>
+
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+        <h1 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 0.4rem;">Simulated Payment Terminal</h1>
+        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5;">
+          This sandbox simulates an external gateway (like Stripe Checkout). Triggering an action here will emit an <strong>HMAC-SHA256 signed webhook</strong> to your backend endpoint.
+        </p>
+      </div>
+
+      <!-- Transaction Data Details -->
+      <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem;">
+          <span style="color: var(--text-muted);">Booking Reference</span>
+          <span id="display-booking-id" style="font-weight: 700; color: #fff;">#---</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem;">
+          <span style="color: var(--text-muted);">Provider Ref</span>
+          <span id="display-provider-ref" style="font-family: monospace; font-size: 0.8rem; color: #818cf8;">---</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0 0.25rem; font-size: 1.15rem; font-weight: 800;">
+          <span style="color: #fff;">Authorized Amount</span>
+          <span id="display-amount" style="color: #38bdf8; font-size: 1.35rem;">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Interactive Simulation Triggers -->
+      <div id="action-panel" style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <button id="btn-simulate-success" class="btn btn-primary" style="padding: 1rem; font-size: 1rem; font-weight: 800; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
+          ✅ Pay & Confirm (payment.succeeded)
+        </button>
+
+        <button id="btn-simulate-fail" class="btn btn-secondary" style="padding: 0.85rem; font-size: 0.92rem; font-weight: 600; justify-content: center; color: #f87171; border-color: rgba(239, 68, 68, 0.3);">
+          ❌ Simulate Payment Failure (payment.failed)
+        </button>
+
+        <a id="link-cancel" href="/index.html" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; text-decoration: underline;">
+          Abandon & Return to Merchant
+        </a>
+      </div>
+
+      <!-- Processing State -->
+      <div id="processing-panel" style="display: none; text-align: center; padding: 1.5rem 0;">
+        <div style="font-size: 2rem; animation: spin 1s linear infinite; display: inline-block;">⚙️</div>
+        <div style="font-weight: 700; font-size: 1.05rem; margin-top: 0.75rem;">Computing HMAC Signature & Dispatching Webhook...</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">Waiting for backend state machine response</div>
+      </div>
+
+      <!-- Feedback Cards -->
+      <div id="result-success" class="status-card" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+        <h3 style="color: #34d399; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.35rem;">Payment Verified!</h3>
+        <p style="color: #cbd5e1; font-size: 0.88rem; margin-bottom: 1rem;">Webhook accepted and verified. Your booking is confirmed.</p>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Redirecting to your ticket in <span id="redirect-counter">2</span>s...</div>
+      </div>
+
+      <div id="result-failure" class="status-card" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚠️</div>
+        <h3 style="color: #f87171; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.35rem;">Payment Declined</h3>
+        <p style="color: #cbd5e1; font-size: 0.88rem; margin-bottom: 1rem;">Payment was failed. Any held seats have been released back to the event.</p>
+        <button id="btn-return-event" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+          Return to Event Seat Map
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const providerRef = urlParams.get('ref');
+    const amount = urlParams.get('amount');
+    const bookingId = urlParams.get('bookingId');
+    const eventId = urlParams.get('eventId');
+
+    if (!providerRef || !bookingId || bookingId === 'undefined' || isNaN(parseInt(bookingId))) {
+      window.location.href = '/my-bookings.html';
+    }
+
+    document.getElementById('display-booking-id').textContent = `#${bookingId}`;
+    document.getElementById('display-provider-ref').textContent = providerRef;
+    document.getElementById('display-amount').textContent = `$${parseFloat(amount || 0).toFixed(2)}`;
+
+    if (eventId) {
+      document.getElementById('link-cancel').href = `/event-details.html?id=${eventId}`;
+      document.getElementById('btn-return-event').onclick = () => {
+        window.location.href = `/event-details.html?id=${eventId}`;
+      };
+    }
+
+    async function triggerWebhookSimulation(eventType) {
+      document.getElementById('action-panel').style.display = 'none';
+      document.getElementById('processing-panel').style.display = 'block';
+
+      // Simulate network hop latency (approx 800ms)
+      await new Promise(r => setTimeout(r, 800));
+
+      try {
+        const response = await Api.post('/api/payments/mock-simulate', {
+          providerRef: providerRef,
+          bookingId: parseInt(bookingId),
+          eventType: eventType
+        });
+
+        document.getElementById('processing-panel').style.display = 'none';
+
+        if (eventType === 'payment.succeeded') {
+          document.getElementById('result-success').style.display = 'block';
+          let count = 2;
+          const interval = setInterval(() => {
+            count--;
+            document.getElementById('redirect-counter').textContent = count;
+            if (count <= 0) {
+              clearInterval(interval);
+              window.location.href = `/ticket.html?bookingId=${bookingId}`;
+            }
+          }, 1000);
+        } else {
+          document.getElementById('result-failure').style.display = 'block';
+        }
+      } catch (err) {
+        document.getElementById('processing-panel').style.display = 'none';
+        document.getElementById('action-panel').style.display = 'flex';
+        showToast(err.message || 'Webhook simulation rejected', 'error');
+      }
+    }
+
+    document.getElementById('btn-simulate-success').addEventListener('click', () => {
+      triggerWebhookSimulation('payment.succeeded');
+    });
+
+    document.getElementById('btn-simulate-fail').addEventListener('click', () => {
+      triggerWebhookSimulation('payment.failed');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicketRush - Book Movies, Concerts, Standup & Live Events</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="/index.html" class="logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg>
+        </div>
+        Ticket<span>Rush</span>
+      </a>
+
+      <!-- BMS Center Search Input -->
+      <div class="nav-search-bar">
+        <span class="nav-search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </span>
+        <input type="text" id="nav-search-input" placeholder="Search for Movies, Events, Plays, Sports and Activities...">
+      </div>
+
+      <nav class="nav-right-actions" id="nav-right"></nav>
+    </div>
+  </header>
+
+  <!-- Hero Cinematic Showcase -->
+  <section class="hero-showcase">
+    <div class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-badge-live">
+          <span class="hero-live-dot"></span>
+          <span>Now Booking • Fastest Selling Events</span>
+        </div>
+        <h1>The Biggest Stadium Tours & Experiences.</h1>
+        <p>
+          Book confirmed seats with real-time atomic database locking. Zero double-booking, guaranteed even when thousands click at once.
+        </p>
+        <div class="hero-pillars">
+          <div><span>⚡</span> Instant 5-Min Seat Hold</div>
+          <div><span>🛡️</span> Zero Double-Booking Lock</div>
+          <div><span>💳</span> 100% Secure Checkout</div>
+        </div>
+      </div>
+      <div style="z-index: 2; text-align: center;">
+        <a href="#events-section" class="btn btn-primary" style="padding: 1.1rem 2.25rem; font-size: 1.05rem;">
+          Explore All Events &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Discovery Strip -->
+  <div class="category-strip">
+    <div class="category-pill active" data-cat="">
+      <span class="cat-icon">🔥</span>
+      <span class="cat-name">All Entertainment</span>
+    </div>
+    <div class="category-pill" data-cat="Movies">
+      <span class="cat-icon">🎬</span>
+      <span class="cat-name">Cinema Movies</span>
+    </div>
+    <div class="category-pill" data-cat="Concerts">
+      <span class="cat-icon">🎸</span>
+      <span class="cat-name">Live Concerts</span>
+    </div>
+    <div class="category-pill" data-cat="Comedy">
+      <span class="cat-icon">🎤</span>
+      <span class="cat-name">Standup Comedy</span>
+    </div>
+    <div class="category-pill" data-cat="Sports">
+      <span class="cat-icon">🏏</span>
+      <span class="cat-name">Live Sports</span>
+    </div>
+    <div class="category-pill" data-cat="Theater">
+      <span class="cat-icon">🎭</span>
+      <span class="cat-name">Plays & Theater</span>
+    </div>
+  </div>
+
+  <main style="padding-top: 0;">
+    <!-- Events Section Header & Filters -->
+    <div class="events-section-header" id="events-section">
+      <div>
+        <h2>Recommended Live Events</h2>
+        <p>Handpicked shows, concerts, and stadium spectacles near you</p>
+      </div>
+
+      <!-- Quick Search & Reset Filters -->
+      <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="search-city" class="form-control" placeholder="Filter by City..." style="width: 180px; padding: 0.55rem 0.95rem; font-size: 0.85rem;">
+        <button id="btn-search" class="btn btn-secondary btn-sm">Filter</button>
+        <button id="btn-reset" class="btn btn-secondary btn-sm" style="color: var(--text-muted);">Reset</button>
+      </div>
+    </div>
+
+    <!-- Events Grid -->
+    <div id="events-grid" class="events-grid"></div>
+
+    <div id="loading" style="text-align: center; padding: 5rem 0; color: var(--text-muted);">
+      <div style="font-size: 2.2rem; margin-bottom: 0.75rem; animation: spin 1s linear infinite; display: inline-block;">⚙️</div>
+      <div style="font-weight: 700; font-size: 1.05rem;">Loading verified entertainment catalog...</div>
+    </div>
+
+    <!-- BookMyShow See More / Load More Shows -->
+    <div id="load-more-container" style="text-align: center; margin: 1rem auto 5rem; display: none;">
+      <button id="btn-load-more" class="btn btn-secondary" onclick="loadMoreEvents()" style="padding: 0.95rem 2.85rem; font-size: 1.02rem; font-weight: 800; border-radius: 9999px; border: 1.5px solid rgba(255, 255, 255, 0.2); background: #161b28; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
+        ✨ See More Shows & Movies &darr;
+      </button>
+      <div id="load-more-stats" style="margin-top: 0.85rem; font-size: 0.85rem; color: #94a3b8; font-weight: 600;">
+        Showing <span id="showing-count">0</span> of <span id="total-count">0</span> live spectacles
+      </div>
+    </div>
+
+    <div id="no-events" class="glass-panel" style="text-align: center; padding: 4rem 2rem; max-width: 600px; margin: 0 auto; display: none;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+      <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;">No Events Found</h3>
+      <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        We couldn't find any published events matching your search criteria. Try selecting another category or city!
+      </p>
+      <button class="btn btn-primary" onclick="resetAllFilters()">Browse All Shows</button>
+    </div>
+  </main>
+
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let activeCategory = '';
+    let currentPage = 0;
+    const pageSize = 12;
+    let totalPages = 1;
+    let totalElements = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('category')) {
+      activeCategory = urlParams.get('category');
+    }
+
+    // High-Resolution Curated Unsplash Event Imagery (Production Quality)
+    const categoryPosters = {
+      'Movies': 'https://image.tmdb.org/t/p/w780/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      'Concerts': 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=800&q=80',
+      'Music': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80',
+      'Comedy': 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=800&q=80',
+      'Sports': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
+      'Theater': 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80'
+    };
+
+    const specificPosters = {
+      'Coldplay: Music of the Spheres World Tour': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+      'Zakir Khan Live: Tathastu & New Stories': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+      'ICC Champions Clash: India vs Australia': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
+      'Rock Revolution 2026 Live': 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=800&q=80'
+    };
+
+    const categoryIcons = {
+      'Movies': '🎬',
+      'Concerts': '🎸',
+      'Music': '🎷',
+      'Sports': '🏏',
+      'Theater': '🎭',
+      'Comedy': '🎤'
+    };
+
+    function renderEventCard(event) {
+      const card = document.createElement('a');
+      card.href = `/event-details.html?id=${event.id}`;
+      card.className = 'event-card';
+
+      const posterUrl = event.posterUrl || specificPosters[event.title] || categoryPosters[event.category] || categoryPosters['Concerts'];
+      const icon = categoryIcons[event.category] || '🎟️';
+
+      // Ratings for BookMyShow realism
+      const rating = (8.8 + ((event.id * 3) % 11) / 10).toFixed(1);
+      const votes = `${(10 + (event.id * 4.7)).toFixed(1)}K`;
+
+      // Date format using UTC helper
+      const dateMs = Api.parseUtc(event.startsAt);
+      const startDate = new Date(dateMs);
+      const monthShort = startDate.toLocaleString(undefined, { month: 'short' });
+      const dayNum = startDate.getDate();
+      const timeStr = startDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+      const pct = event.totalSeats > 0 ? (event.availableSeats / event.totalSeats) * 100 : 0;
+      const availabilityText = event.availableSeats === 0 ? 'SOLD OUT' : `${event.availableSeats} seats left`;
+
+      card.innerHTML = `
+        <div class="poster-wrapper" style="background-image: url('${posterUrl}');">
+          <span class="poster-badge-category">${icon} ${event.category}</span>
+          <div class="poster-date-box">
+            <div class="poster-date-month">${monthShort}</div>
+            <div class="poster-date-day">${dayNum}</div>
+          </div>
+          <div class="poster-rating-bar">
+            <span class="rating-pill">★ ${rating}/10</span>
+            <span class="votes-count">${votes} Votes</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div>
+            <h3 class="event-card-title">${event.title}</h3>
+            <div class="event-card-meta">
+              <div>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #94a3b8;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>${event.venue}, ${event.city}</span>
+              </div>
+              <div>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>Starts at ${timeStr}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="capacity-container">
+              <div class="capacity-label">
+                <span>Availability</span>
+                <strong style="color: ${event.availableSeats > 5 ? '#34d399' : '#f87171'};">${availabilityText}</strong>
+              </div>
+              <div class="capacity-track">
+                <div class="capacity-fill" style="width: ${pct}%;"></div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="price-tag">
+                <small>Starting from</small>
+                $${event.startingPrice ? event.startingPrice.toFixed(2) : '45.00'}
+              </div>
+              <span class="btn btn-primary btn-sm" style="pointer-events: none;">
+                Book Seats &rarr;
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    async function loadEvents(isAppend = false) {
+      if (!isAppend) {
+        currentPage = 0;
+      }
+
+      const keyword = document.getElementById('nav-search-input').value.trim();
+      const city = document.getElementById('search-city').value.trim();
+
+      const params = new URLSearchParams();
+      if (keyword) params.append('keyword', keyword);
+      if (city) params.append('city', city);
+      if (activeCategory) params.append('category', activeCategory);
+      params.append('page', currentPage);
+      params.append('size', pageSize);
+
+      const grid = document.getElementById('events-grid');
+      const loading = document.getElementById('loading');
+      const noEvents = document.getElementById('no-events');
+      const loadMoreContainer = document.getElementById('load-more-container');
+      const btnLoadMore = document.getElementById('btn-load-more');
+
+      if (!isAppend) {
+        loading.style.display = 'block';
+        grid.textContent = '';
+        noEvents.style.display = 'none';
+        if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+      } else {
+        if (btnLoadMore) {
+          btnLoadMore.disabled = true;
+          btnLoadMore.textContent = '⏳ Loading More Shows...';
+        }
+      }
+
+      try {
+        const page = await api.get(`/events?${params.toString()}`);
+        loading.style.display = 'none';
+
+        totalPages = page.totalPages || 0;
+        totalElements = page.totalElements || 0;
+
+        if (!page.content || page.content.length === 0) {
+          if (!isAppend) {
+            noEvents.style.display = 'block';
+            if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+          }
+          return;
+        }
+
+        page.content.forEach((event) => {
+          const card = renderEventCard(event);
+          grid.appendChild(card);
+        });
+
+        // Update counts
+        const loadedCount = grid.querySelectorAll('.event-card').length;
+        const showingEl = document.getElementById('showing-count');
+        const totalEl = document.getElementById('total-count');
+        const statsEl = document.getElementById('load-more-stats');
+
+        if (showingEl) showingEl.textContent = loadedCount;
+        if (totalEl) totalEl.textContent = totalElements;
+
+        // Manage Load More visibility and state
+        if (loadMoreContainer && btnLoadMore) {
+          if (currentPage + 1 < totalPages) {
+            loadMoreContainer.style.display = 'block';
+            btnLoadMore.disabled = false;
+            btnLoadMore.style.display = 'inline-block';
+            btnLoadMore.textContent = '✨ See More Shows & Movies ↓';
+            if (statsEl) {
+              statsEl.innerHTML = `Showing <span id="showing-count">${loadedCount}</span> of <span id="total-count">${totalElements}</span> live spectacles`;
+            }
+          } else {
+            if (totalElements > pageSize) {
+              loadMoreContainer.style.display = 'block';
+              btnLoadMore.style.display = 'none';
+              if (statsEl) {
+                statsEl.innerHTML = `🎉 Showing all <strong>${totalElements}</strong> live spectacles. You've reached the end!`;
+              }
+            } else {
+              loadMoreContainer.style.display = 'none';
+            }
+          }
+        }
+
+      } catch (err) {
+        loading.style.display = 'none';
+        if (!isAppend) {
+          noEvents.style.display = 'block';
+        }
+      } finally {
+        if (isAppend && btnLoadMore && currentPage + 1 < totalPages) {
+          btnLoadMore.disabled = false;
+          btnLoadMore.textContent = '✨ See More Shows & Movies ↓';
+        }
+      }
+    }
+
+    async function loadMoreEvents() {
+      if (currentPage + 1 < totalPages) {
+        currentPage++;
+        await loadEvents(true);
+      }
+    }
+
+    document.querySelectorAll('.category-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeCategory = pill.dataset.cat;
+        loadEvents();
+      });
+    });
+
+    let debounceTimer;
+    document.getElementById('nav-search-input').addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadEvents, 300);
+    });
+
+    document.getElementById('btn-search').addEventListener('click', loadEvents);
+
+    function resetAllFilters() {
+      document.getElementById('nav-search-input').value = '';
+      document.getElementById('search-city').value = '';
+      activeCategory = '';
+      document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector('.category-pill[data-cat=""]').classList.add('active');
+      loadEvents();
+    }
+
+    document.getElementById('btn-reset').addEventListener('click', resetAllFilters);
+
+    window.loadEvents = loadEvents;
+    document.addEventListener('DOMContentLoaded', loadEvents);
+  </script>
+</body>
+</html>

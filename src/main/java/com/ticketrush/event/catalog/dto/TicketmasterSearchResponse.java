@@ -1,0 +1,17 @@
+package com.ticketrush.event.catalog.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record TicketmasterSearchResponse(
+        @JsonProperty("_embedded") TmEventsEmbedded embedded
+) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record TmEventsEmbedded(List<TicketmasterEventDto> events) {}
+
+    public List<TicketmasterEventDto> getEvents() {
+        return (embedded != null && embedded.events() != null) ? embedded.events() : List.of();
+    }
+}
